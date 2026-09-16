@@ -7,15 +7,18 @@ below) does not include that glyph and will crash when it tries to render
 it. Always use the literal string "PHP " as a prefix for peso amounts.
 """
 import io
+import os
 from decimal import Decimal
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 COMPANY_NAME = "Bio Green Processing and Manufacturing Inc."
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+LOGO_ASPECT_RATIO = 961 / 258  # width / height of logo.png (pre-cropped to content)
 
 
 def _php(amount) -> str:
@@ -39,8 +42,14 @@ def generate_payslip_pdf(employee, payroll_run, payslip, breakdown: dict) -> io.
     subtitle_style = ParagraphStyle("SubtitleStyle", parent=styles["Normal"], fontSize=10, textColor=colors.grey)
     section_style = ParagraphStyle("SectionStyle", parent=styles["Heading3"], fontSize=11, spaceBefore=10, spaceAfter=4)
 
+    logo_width = 3.5 * inch
+    logo_height = logo_width / LOGO_ASPECT_RATIO
+
     elements = []
-    elements.append(Paragraph(COMPANY_NAME, title_style))
+    if os.path.exists(LOGO_PATH):
+        elements.append(Image(LOGO_PATH, width=logo_width, height=logo_height))
+    else:
+        elements.append(Paragraph(COMPANY_NAME, title_style))
     elements.append(Paragraph("Employee Payslip", subtitle_style))
     elements.append(Spacer(1, 0.2 * inch))
 
