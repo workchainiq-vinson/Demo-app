@@ -1,4 +1,4 @@
-import { Banknote, CalendarClock, Leaf, Sprout, Users } from "lucide-react";
+import { Banknote, CalendarClock, Sprout, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
@@ -31,12 +31,13 @@ export default function Layout({ children }: { children?: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-slate-50">
       <aside className="flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white px-3 py-4">
-        <div className="mb-6 flex items-center gap-2 px-2">
-          <Leaf className="text-green-700" size={24} />
-          <div>
-            <p className="text-sm font-semibold leading-tight text-slate-900">Bio Green</p>
-            <p className="text-xs leading-tight text-slate-500">HR &amp; Payroll</p>
-          </div>
+        <div className="mb-6 px-2">
+          <img
+            src="/logo.png"
+            alt="Bio Green Processing and Manufacturing Inc."
+            className="w-full mix-blend-multiply"
+          />
+          <p className="mt-1 text-xs font-medium leading-tight text-slate-500">HR &amp; Payroll</p>
         </div>
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => (
