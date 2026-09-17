@@ -76,6 +76,13 @@ export default function PakyawEntry() {
         setTotalUnits("");
       }
       await refresh();
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? // @ts-expect-error axios error shape
+            err.response?.data?.detail ?? "Failed to log pakyaw output"
+          : "Failed to log pakyaw output";
+      alert(message);
     } finally {
       setSaving(false);
     }

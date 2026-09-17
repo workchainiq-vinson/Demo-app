@@ -57,6 +57,13 @@ export default function AttendanceEntry() {
       setIsRestDayWorked(false);
       setHolidayId("");
       await refresh();
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? // @ts-expect-error axios error shape
+            err.response?.data?.detail ?? "Failed to log attendance"
+          : "Failed to log attendance";
+      alert(message);
     } finally {
       setSaving(false);
     }
@@ -67,8 +74,17 @@ export default function AttendanceEntry() {
     if (input === null) return;
     const minutes = Number(input);
     if (Number.isNaN(minutes) || minutes < 0) return;
-    await approveOvertime(att.id, minutes);
-    await refresh();
+    try {
+      await approveOvertime(att.id, minutes);
+      await refresh();
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? // @ts-expect-error axios error shape
+            err.response?.data?.detail ?? "Failed to approve overtime"
+          : "Failed to approve overtime";
+      alert(message);
+    }
   };
 
   return (
