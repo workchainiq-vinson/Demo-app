@@ -30,16 +30,19 @@ function SidebarLink({ to, label, icon: Icon }: { to: string; label: string; ico
 export default function Layout({ children }: { children?: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <aside className="flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white px-3 py-4">
-        <div className="mb-6 px-2">
+      <aside className="flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
+        <div className="border-b border-slate-100 px-4 py-5">
           <img
             src="/logo.png"
             alt="Bio Green Processing and Manufacturing Inc."
             className="w-full mix-blend-multiply"
           />
-          <p className="mt-1 text-xs font-medium leading-tight text-slate-500">HR &amp; Payroll</p>
+          <p className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            HR &amp; Payroll System
+          </p>
         </div>
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1 px-3 py-4">
+          <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Menu</p>
           {navItems.map((item) => (
             <SidebarLink key={item.to} {...item} />
           ))}
