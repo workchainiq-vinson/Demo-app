@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, UserCheck, UserX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createEmployee, deleteEmployee, listEmployees, updateEmployee } from "../api/employees";
 import { listShifts } from "../api/shifts";
@@ -105,6 +105,23 @@ export default function EmployeeDirectory() {
     }
   };
 
+  const handleToggleActive = async (emp: Employee) => {
+    const nextActive = !emp.is_active;
+    const verb = nextActive ? "Reactivate" : "Deactivate";
+    if (!confirm(`${verb} ${emp.first_name} ${emp.last_name}?`)) return;
+    try {
+      await updateEmployee(emp.id, { is_active: nextActive });
+      await refresh();
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? // @ts-expect-error axios error shape
+            err.response?.data?.detail ?? "Failed to update employee status"
+          : "Failed to update employee status";
+      alert(message);
+    }
+  };
+
   const shiftName = (id: number | null) => shifts.find((s) => s.id === id)?.name ?? "—";
 
   return (
@@ -183,7 +200,19 @@ export default function EmployeeDirectory() {
                         <Pencil size={16} />
                       </button>
                       <button
+                        onClick={() => handleToggleActive(emp)}
+                        title={emp.is_active ? "Deactivate" : "Reactivate"}
+                        className={
+                          emp.is_active
+                            ? "rounded p-1.5 text-amber-600 hover:bg-amber-50"
+                            : "rounded p-1.5 text-green-600 hover:bg-green-50"
+                        }
+                      >
+                        {emp.is_active ? <UserX size={16} /> : <UserCheck size={16} />}
+                      </button>
+                      <button
                         onClick={() => handleDelete(emp.id)}
+                        title="Delete"
                         className="rounded p-1.5 text-red-500 hover:bg-red-50"
                       >
                         <Trash2 size={16} />
