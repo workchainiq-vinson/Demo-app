@@ -92,8 +92,17 @@ export default function EmployeeDirectory() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this employee? This cannot be undone.")) return;
-    await deleteEmployee(id);
-    await refresh();
+    try {
+      await deleteEmployee(id);
+      await refresh();
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? // @ts-expect-error axios error shape
+            err.response?.data?.detail ?? "Failed to delete employee"
+          : "Failed to delete employee";
+      alert(message);
+    }
   };
 
   const shiftName = (id: number | null) => shifts.find((s) => s.id === id)?.name ?? "—";
