@@ -4,7 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.attendance import Attendance
 from app.models.employee import Employee
+from app.models.pakyaw import PakyawLog
+from app.models.payroll import PayrollPayslip
 from app.schemas.employee import EmployeeCreate, EmployeeRead, EmployeeUpdate
 
 router = APIRouter(prefix="/employees", tags=["employees"])
@@ -54,6 +57,21 @@ def delete_employee(employee_id: int, db: Session = Depends(get_db)):
     employee = db.query(Employee).filter(Employee.id == employee_id).first()
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
+
+    has_history = (
+        db.query(Attendance).filter(Attendance.employee_id == employee_id).first() is not None
+        or db.query(PakyawLog).filter(PakyawLog.employee_id == employee_id).first() is not None
+        or db.query(PayrollPayslip).filter(PayrollPayslip.employee_id == employee_id).first() is not None
+    )
+    if has_history:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Cannot delete an employee with existing attendance, pakyaw, or payroll records. "
+                "Set the employee to Inactive instead to preserve payroll history."
+            ),
+        )
+
     db.delete(employee)
     db.commit()
     return None
