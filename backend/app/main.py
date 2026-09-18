@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
-from app.routers import attendance, employees, holidays, pakyaw, payroll, shifts
+from app.routers import attendance, dashboard, employees, holidays, pakyaw, payroll, reports, shifts
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,6 +22,8 @@ app.include_router(attendance.router)
 app.include_router(pakyaw.router)
 app.include_router(holidays.router)
 app.include_router(payroll.router)
+app.include_router(dashboard.router)
+app.include_router(reports.router)
 
 
 @app.get("/")

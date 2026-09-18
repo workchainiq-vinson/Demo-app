@@ -1,14 +1,9 @@
 """
-Generates a payslip PDF with ReportLab.
-
-CRITICAL: Never use the "PHP" peso sign glyph ("₱") anywhere in this
-file or in generated content. ReportLab's default Helvetica font (used
-below) does not include that glyph and will crash when it tries to render
-it. Always use the literal string "PHP " as a prefix for peso amounts.
+Generates a payslip PDF with ReportLab. See app/pdf/common.py for the
+peso-formatting / Unicode-safety notes shared across PDF generators.
 """
 import io
 import os
-from decimal import Decimal
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -16,14 +11,8 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-COMPANY_NAME = "Bio Green Processing and Manufacturing Inc."
-LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
-LOGO_ASPECT_RATIO = 961 / 258  # width / height of logo.png (pre-cropped to content)
-
-
-def _php(amount) -> str:
-    value = amount if isinstance(amount, Decimal) else Decimal(str(amount))
-    return f"PHP {value:,.2f}"
+from app.pdf.common import COMPANY_NAME, LOGO_ASPECT_RATIO, LOGO_PATH
+from app.pdf.common import php as _php
 
 
 def generate_payslip_pdf(employee, payroll_run, payslip, breakdown: dict) -> io.BytesIO:

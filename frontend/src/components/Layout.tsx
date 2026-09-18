@@ -1,18 +1,30 @@
-import { Banknote, CalendarClock, Sprout, Users } from "lucide-react";
+import { Banknote, CalendarClock, LayoutDashboard, Sprout, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 const navItems = [
-  { to: "/employees", label: "Employees", icon: Users },
-  { to: "/attendance", label: "Attendance", icon: CalendarClock },
-  { to: "/pakyaw", label: "Pakyaw Entry", icon: Sprout },
-  { to: "/payroll", label: "Payroll", icon: Banknote },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/employees", label: "Employees", icon: Users, end: false },
+  { to: "/attendance", label: "Attendance", icon: CalendarClock, end: false },
+  { to: "/pakyaw", label: "Pakyaw Entry", icon: Sprout, end: false },
+  { to: "/payroll", label: "Payroll", icon: Banknote, end: false },
 ];
 
-function SidebarLink({ to, label, icon: Icon }: { to: string; label: string; icon: typeof Users }) {
+function SidebarLink({
+  to,
+  label,
+  icon: Icon,
+  end,
+}: {
+  to: string;
+  label: string;
+  icon: typeof Users;
+  end: boolean;
+}) {
   return (
     <NavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
           isActive
