@@ -115,3 +115,54 @@ export interface PayrollRun {
   status: string;
   payslips: Payslip[];
 }
+
+export interface EmployeeCounts {
+  total: number;
+  active: number;
+  inactive: number;
+  by_type: Record<EmploymentType, number>;
+}
+
+export interface LatestPayrollRunSummary {
+  id: number;
+  cutoff_start: string;
+  cutoff_end: string;
+  gross_pay: number;
+  total_deductions: number;
+  net_pay: number;
+}
+
+export interface PayrollTrendPoint {
+  run_id: number;
+  cutoff_end: string;
+  gross_pay: number;
+  net_pay: number;
+}
+
+export interface AttendanceSummaryThisMonth {
+  late_minutes: number;
+  approved_ot_minutes: number;
+  nsd_minutes: number;
+  days_logged: number;
+}
+
+export interface PakyawSummaryThisMonth {
+  total_units: number;
+  total_pay: number;
+}
+
+export interface UpcomingHoliday {
+  id: number;
+  name: string;
+  date: string;
+  holiday_type: HolidayType;
+}
+
+export interface DashboardSummary {
+  employee_counts: EmployeeCounts;
+  latest_payroll_run: LatestPayrollRunSummary | null;
+  payroll_trend: PayrollTrendPoint[];
+  attendance_summary_this_month: AttendanceSummaryThisMonth;
+  pakyaw_summary_this_month: PakyawSummaryThisMonth;
+  upcoming_holidays: UpcomingHoliday[];
+}

@@ -1,4 +1,4 @@
-import { api } from "./client";
+import { API_BASE_URL, api } from "./client";
 import type { PayrollRun } from "./types";
 
 export const generatePayroll = async (payload: {
@@ -17,5 +17,5 @@ export const listPayrollRuns = async (): Promise<PayrollRun[]> => {
 };
 
 export const getPayslipPdfUrl = (payslipId: number): string => {
-  return `http://127.0.0.1:8000/payroll/payslips/${payslipId}/pdf`;
+  return `${API_BASE_URL}/payroll/payslips/${payslipId}/pdf`;
 };
