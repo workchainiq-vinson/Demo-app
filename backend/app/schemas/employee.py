@@ -11,6 +11,7 @@ class EmployeeBase(BaseModel):
     employee_code: str
     first_name: str
     last_name: str
+    department: Optional[str] = None
     employment_type: EmploymentType = EmploymentType.REGULAR
     daily_rate: Decimal = Decimal("0.00")
     rest_day_of_week: Optional[int] = None
@@ -26,6 +27,7 @@ class EmployeeUpdate(BaseModel):
     employee_code: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    department: Optional[str] = None
     employment_type: Optional[EmploymentType] = None
     daily_rate: Optional[Decimal] = None
     rest_day_of_week: Optional[int] = None

@@ -12,7 +12,9 @@ from app.models.attendance import Attendance
 from app.models.employee import Employee
 from app.models.pakyaw import PakyawLog
 from app.models.payroll import PayrollPayslip, PayrollRun
+from app.pdf.dtr_report_generator import generate_dtr_summary_pdf
 from app.pdf.payroll_summary_generator import generate_payroll_summary_pdf
+from app.services.dtr_service import compute_dtr_summary, group_by_department
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -169,3 +171,26 @@ def employees_csv(db: Session = Depends(get_db)):
     header = ["Employee Code", "Employee Name", "Employment Type", "Daily Rate", "Rest Day (0=Mon)", "Default Shift", "Status"]
     filename = "employee_directory.csv"
     return _csv_response(rows, header, filename)
+
+
+@router.get("/dtr-summary/pdf")
+def dtr_summary_pdf(
+    date_from: date_type,
+    date_to: date_type,
+    department: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    rows = compute_dtr_summary(db, date_from, date_to)
+    if department:
+        rows = [r for r in rows if r["department"] == department]
+    if not rows:
+        raise HTTPException(status_code=404, detail="No attendance records found for this period")
+
+    rows_by_department = group_by_department(rows)
+    pdf_buffer = generate_dtr_summary_pdf(date_from, date_to, rows_by_department)
+    filename = f"dtr_summary_{date_from}_{date_to}.pdf"
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

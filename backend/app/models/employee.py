@@ -19,6 +19,7 @@ class Employee(Base):
     employee_code = Column(String, unique=True, nullable=False, index=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
+    department = Column(String, nullable=True)
     employment_type = Column(Enum(EmploymentType), nullable=False, default=EmploymentType.REGULAR)
     daily_rate = Column(Numeric(10, 2), nullable=False, default=0)
     rest_day_of_week = Column(Integer, nullable=True)  # 0=Monday ... 6=Sunday

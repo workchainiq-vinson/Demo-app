@@ -23,3 +23,9 @@ export const getPakyawCsvUrl = (params: { date_from?: string; date_to?: string }
 };
 
 export const getEmployeesCsvUrl = (): string => `${API_BASE_URL}/reports/employees/csv`;
+
+export const getDtrSummaryPdfUrl = (params: { date_from: string; date_to: string; department?: string }): string => {
+  const query = new URLSearchParams({ date_from: params.date_from, date_to: params.date_to });
+  if (params.department) query.set("department", params.department);
+  return `${API_BASE_URL}/reports/dtr-summary/pdf?${query.toString()}`;
+};

@@ -14,6 +14,7 @@ export interface Employee {
   employee_code: string;
   first_name: string;
   last_name: string;
+  department: string | null;
   employment_type: EmploymentType;
   daily_rate: string;
   rest_day_of_week: number | null;
@@ -25,6 +26,7 @@ export interface EmployeeInput {
   employee_code: string;
   first_name: string;
   last_name: string;
+  department: string | null;
   employment_type: EmploymentType;
   daily_rate: string;
   rest_day_of_week: number | null;
