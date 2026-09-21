@@ -1,4 +1,4 @@
-import { CalendarDays, Download, FileText, Sprout, Users, Wallet } from "lucide-react";
+import { CalendarDays, ClipboardList, Download, FileText, Sprout, Users, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { getDashboardSummary } from "../api/dashboard";
@@ -6,6 +6,7 @@ import { listEmployees } from "../api/employees";
 import { listPayrollRuns } from "../api/payroll";
 import {
   getAttendanceCsvUrl,
+  getDtrSummaryPdfUrl,
   getEmployeesCsvUrl,
   getPakyawCsvUrl,
   getPayrollSummaryCsvUrl,
@@ -53,6 +54,8 @@ export default function Dashboard() {
   const [attendanceTo, setAttendanceTo] = useState(todayIso());
   const [pakyawFrom, setPakyawFrom] = useState(firstOfMonthIso());
   const [pakyawTo, setPakyawTo] = useState(todayIso());
+  const [dtrFrom, setDtrFrom] = useState(firstOfMonthIso());
+  const [dtrTo, setDtrTo] = useState(todayIso());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -168,7 +171,7 @@ export default function Dashboard() {
           <FileText size={16} className="text-slate-500" />
           <p className="text-sm font-semibold text-slate-700">Downloadable Reports</p>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div className="rounded-lg border border-slate-100 p-3">
             <p className="mb-2 text-xs font-medium text-slate-600">Payroll Summary</p>
             <select
@@ -258,6 +261,32 @@ export default function Dashboard() {
               className="flex items-center justify-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
             >
               <Download size={12} /> CSV
+            </a>
+          </div>
+
+          <div className="rounded-lg border border-slate-100 p-3">
+            <p className="mb-2 text-xs font-medium text-slate-600">DTR Summary Report</p>
+            <div className="mb-2 flex gap-1">
+              <input
+                type="date"
+                value={dtrFrom}
+                onChange={(e) => setDtrFrom(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-1.5 py-1.5 text-xs"
+              />
+              <input
+                type="date"
+                value={dtrTo}
+                onChange={(e) => setDtrTo(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-1.5 py-1.5 text-xs"
+              />
+            </div>
+            <a
+              href={getDtrSummaryPdfUrl({ date_from: dtrFrom, date_to: dtrTo })}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+            >
+              <ClipboardList size={12} /> PDF
             </a>
           </div>
 
