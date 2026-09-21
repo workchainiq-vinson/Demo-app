@@ -90,17 +90,17 @@ export default function PakyawEntry() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-xl font-semibold text-slate-900">Pakyaw Data Entry</h1>
         <p className="text-sm text-slate-500">
           Log piece-rate output individually, or split a team's total output equally with Group Entry.
         </p>
       </div>
 
-      <div className="mb-4 inline-flex rounded-lg border border-slate-300 bg-white p-1">
+      <div className="mb-3 inline-flex rounded-lg border border-slate-300 bg-white p-1">
         <button
           onClick={() => setMode("individual")}
-          className={`rounded-md px-4 py-1.5 text-sm font-medium ${
+          className={`rounded-md px-3 py-1.5 text-sm font-medium ${
             mode === "individual" ? "bg-green-700 text-white" : "text-slate-600 hover:bg-slate-100"
           }`}
         >
@@ -108,7 +108,7 @@ export default function PakyawEntry() {
         </button>
         <button
           onClick={() => setMode("group")}
-          className={`flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium ${
+          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium ${
             mode === "group" ? "bg-green-700 text-white" : "text-slate-600 hover:bg-slate-100"
           }`}
         >
@@ -116,15 +116,15 @@ export default function PakyawEntry() {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <form onSubmit={handleSubmit} className="mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">Task</label>
             <select
               required
               value={taskId}
               onChange={(e) => setTaskId(Number(e.target.value))}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             >
               <option value="">Select task</option>
               {catalog.map((t) => (
@@ -141,7 +141,7 @@ export default function PakyawEntry() {
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             />
           </div>
 
@@ -153,7 +153,7 @@ export default function PakyawEntry() {
                   required
                   value={employeeId}
                   onChange={(e) => setEmployeeId(Number(e.target.value))}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
                 >
                   <option value="">Select employee</option>
                   {employees.map((emp) => (
@@ -171,7 +171,7 @@ export default function PakyawEntry() {
                   step="0.01"
                   value={units}
                   onChange={(e) => setUnits(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
                 />
               </div>
             </>
@@ -181,13 +181,13 @@ export default function PakyawEntry() {
                 <label className="mb-1 block text-xs font-medium text-slate-600">
                   Team Members ({groupEmployeeIds.length} selected)
                 </label>
-                <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-slate-300 p-2">
+                <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-slate-300 p-1.5">
                   {employees.map((emp) => (
                     <button
                       type="button"
                       key={emp.id}
                       onClick={() => toggleGroupEmployee(emp.id)}
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                      className={`rounded-full px-1.5.5 py-1 text-xs font-medium ${
                         groupEmployeeIds.includes(emp.id)
                           ? "bg-green-700 text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -206,7 +206,7 @@ export default function PakyawEntry() {
                   step="0.01"
                   value={totalUnits}
                   onChange={(e) => setTotalUnits(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
                 />
                 {groupEmployeeIds.length > 0 && totalUnits && (
                   <p className="mt-1 text-xs text-slate-500">
@@ -218,11 +218,11 @@ export default function PakyawEntry() {
             </>
           )}
         </div>
-        <div className="mt-3 flex justify-end">
+        <div className="mt-2 flex justify-end">
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-green-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50"
           >
             <Plus size={16} /> {saving ? "Saving..." : "Log Output"}
           </button>
@@ -233,38 +233,38 @@ export default function PakyawEntry() {
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>
-              <th className="px-4 py-3">Employee</th>
-              <th className="px-4 py-3">Task</th>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Units</th>
-              <th className="px-4 py-3">Group Batch</th>
-              <th className="px-4 py-3">Computed Pay</th>
+              <th className="px-3 py-2">Employee</th>
+              <th className="px-3 py-2">Task</th>
+              <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2">Units</th>
+              <th className="px-3 py-2">Group Batch</th>
+              <th className="px-3 py-2">Computed Pay</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={6} className="px-3 py-4 text-center text-slate-400">
                   Loading...
                 </td>
               </tr>
             ) : logs.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={6} className="px-3 py-4 text-center text-slate-400">
                   No pakyaw logs yet.
                 </td>
               </tr>
             ) : (
               logs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900">{employeeName(log.employee_id)}</td>
-                  <td className="px-4 py-3">{taskName(log.pakyaw_catalog_id)}</td>
-                  <td className="px-4 py-3">{log.date}</td>
-                  <td className="px-4 py-3">{log.units_completed}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-400">
+                  <td className="px-3 py-2 font-medium text-slate-900">{employeeName(log.employee_id)}</td>
+                  <td className="px-3 py-2">{taskName(log.pakyaw_catalog_id)}</td>
+                  <td className="px-3 py-2">{log.date}</td>
+                  <td className="px-3 py-2">{log.units_completed}</td>
+                  <td className="px-3 py-2 font-mono text-xs text-slate-400">
                     {log.group_batch_id ? log.group_batch_id.slice(0, 8) : "—"}
                   </td>
-                  <td className="px-4 py-3 font-medium">{formatPeso(log.computed_pay)}</td>
+                  <td className="px-3 py-2 font-medium">{formatPeso(log.computed_pay)}</td>
                 </tr>
               ))
             )}

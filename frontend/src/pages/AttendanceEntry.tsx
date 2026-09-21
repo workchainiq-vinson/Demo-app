@@ -89,7 +89,7 @@ export default function AttendanceEntry() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-xl font-semibold text-slate-900">Attendance</h1>
         <p className="text-sm text-slate-500">
           Log daily punches. Lateness, undertime, and NSD minutes are computed automatically from the
@@ -97,15 +97,15 @@ export default function AttendanceEntry() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+      <form onSubmit={handleSubmit} className="mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
           <div className="col-span-2">
             <label className="mb-1 block text-xs font-medium text-slate-600">Employee</label>
             <select
               required
               value={employeeId}
               onChange={(e) => setEmployeeId(Number(e.target.value))}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             >
               <option value="">Select employee</option>
               {employees.map((emp) => (
@@ -122,7 +122,7 @@ export default function AttendanceEntry() {
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             />
           </div>
           <div>
@@ -132,7 +132,7 @@ export default function AttendanceEntry() {
               required
               value={timeIn}
               onChange={(e) => setTimeIn(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             />
           </div>
           <div>
@@ -142,7 +142,7 @@ export default function AttendanceEntry() {
               required
               value={timeOut}
               onChange={(e) => setTimeOut(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             />
           </div>
           <div>
@@ -150,7 +150,7 @@ export default function AttendanceEntry() {
             <select
               value={holidayId}
               onChange={(e) => setHolidayId(e.target.value === "" ? "" : Number(e.target.value))}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             >
               <option value="">None</option>
               {holidays.map((h) => (
@@ -161,7 +161,7 @@ export default function AttendanceEntry() {
             </select>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-6">
+        <div className="mt-2 flex items-center gap-4">
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" checked={nextDayOut} onChange={(e) => setNextDayOut(e.target.checked)} />
             Time Out is next calendar day (overnight shift)
@@ -177,7 +177,7 @@ export default function AttendanceEntry() {
           <button
             type="submit"
             disabled={saving}
-            className="ml-auto flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50"
+            className="ml-auto flex items-center gap-2 rounded-lg bg-green-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50"
           >
             <Plus size={16} /> {saving ? "Saving..." : "Log Attendance"}
           </button>
@@ -188,47 +188,47 @@ export default function AttendanceEntry() {
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>
-              <th className="px-4 py-3">Employee</th>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Time In</th>
-              <th className="px-4 py-3">Time Out</th>
-              <th className="px-4 py-3">Late</th>
-              <th className="px-4 py-3">Undertime</th>
-              <th className="px-4 py-3">NSD</th>
-              <th className="px-4 py-3">Actual OT</th>
-              <th className="px-4 py-3">Approved OT</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-3 py-2">Employee</th>
+              <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2">Time In</th>
+              <th className="px-3 py-2">Time Out</th>
+              <th className="px-3 py-2">Late</th>
+              <th className="px-3 py-2">Undertime</th>
+              <th className="px-3 py-2">NSD</th>
+              <th className="px-3 py-2">Actual OT</th>
+              <th className="px-3 py-2">Approved OT</th>
+              <th className="px-3 py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={10} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={10} className="px-3 py-4 text-center text-slate-400">
                   Loading...
                 </td>
               </tr>
             ) : records.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={10} className="px-3 py-4 text-center text-slate-400">
                   No attendance records yet.
                 </td>
               </tr>
             ) : (
               records.map((att) => (
                 <tr key={att.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900">{employeeName(att.employee_id)}</td>
-                  <td className="px-4 py-3">{att.date}</td>
-                  <td className="px-4 py-3">{att.time_in?.slice(11, 16) ?? "—"}</td>
-                  <td className="px-4 py-3">{att.time_out?.slice(11, 16) ?? "—"}</td>
-                  <td className="px-4 py-3">{att.late_minutes}m</td>
-                  <td className="px-4 py-3">{att.undertime_minutes}m</td>
-                  <td className="px-4 py-3">{att.nsd_minutes}m</td>
-                  <td className="px-4 py-3">{att.actual_ot_minutes}m</td>
-                  <td className="px-4 py-3 font-medium text-green-700">{att.approved_ot_minutes}m</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-2 font-medium text-slate-900">{employeeName(att.employee_id)}</td>
+                  <td className="px-3 py-2">{att.date}</td>
+                  <td className="px-3 py-2">{att.time_in?.slice(11, 16) ?? "—"}</td>
+                  <td className="px-3 py-2">{att.time_out?.slice(11, 16) ?? "—"}</td>
+                  <td className="px-3 py-2">{att.late_minutes}m</td>
+                  <td className="px-3 py-2">{att.undertime_minutes}m</td>
+                  <td className="px-3 py-2">{att.nsd_minutes}m</td>
+                  <td className="px-3 py-2">{att.actual_ot_minutes}m</td>
+                  <td className="px-3 py-2 font-medium text-green-700">{att.approved_ot_minutes}m</td>
+                  <td className="px-3 py-2 text-right">
                     <button
                       onClick={() => handleApproveOt(att)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-1.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
                     >
                       <Check size={14} /> Approve OT
                     </button>

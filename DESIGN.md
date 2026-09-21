@@ -3,20 +3,20 @@ version: "alpha"
 name: Bio Green Operations
 description: Visual identity for the Bio Green Processing and Manufacturing Inc. HR & Payroll System — a clean, functional operations dashboard for a Philippine manufacturing plant.
 colors:
-  primary: "#15803d"
-  primary-hover: "#166534"
-  primary-container: "#dcfce7"
-  on-primary-container: "#166534"
-  accent: "#16a34a"
-  neutral: "#f8fafc"
+  primary: "#557a00"
+  primary-hover: "#45640a"
+  primary-container: "#e2f0c6"
+  on-primary-container: "#45640a"
+  accent: "#00a83c"
+  neutral: "#fafaf9"
   surface: "#ffffff"
-  surface-muted: "#e2e8f0"
-  border-subtle: "#f1f5f9"
-  text-primary: "#0f172a"
-  text-emphasis: "#334155"
-  text-secondary: "#475569"
-  text-tertiary: "#64748b"
-  text-muted: "#94a3b8"
+  surface-muted: "#e7e5e4"
+  border-subtle: "#f5f5f4"
+  text-primary: "#1c1917"
+  text-emphasis: "#44403c"
+  text-secondary: "#57534e"
+  text-tertiary: "#78716c"
+  text-muted: "#a8a29e"
   warning: "#d97706"
   warning-container: "#fffbeb"
   danger: "#ef4444"
@@ -55,10 +55,10 @@ rounded:
   full: 9999px
 spacing:
   xs: 4px
-  sm: 8px
-  md: 12px
-  lg: 16px
-  xl: 24px
+  sm: 6px
+  md: 10px
+  lg: 12px
+  xl: 16px
 components:
   page:
     backgroundColor: "{colors.neutral}"
@@ -132,43 +132,56 @@ Functional Operations, not decoration. The Bio Green HR & Payroll System is an
 internal tool for plant HR staff running payroll, logging attendance, and
 tracking piece-rate output — the UI should read as calm, legible, and
 trustworthy, closer to a well-organized spreadsheet than a marketing product.
-Green is used sparingly and deliberately: it signals the primary action or an
-"active/healthy" state, echoing the Bio Green leaf mark, not as a decorative
-wash across the interface.
+The palette is sampled directly from the company logo (leaf olive-green, the
+vivid emerald glow around the wordmark, true-black text) rather than a
+generic Tailwind/SaaS blue-gray, and the whole interface runs tight and dense
+— small paddings, small gaps — closer to a ledger than a marketing site.
+Flat color only: no gradients, anywhere, on any surface or control.
 
 ## Colors
 
-The palette is built on a neutral slate scale with a single green accent
-carried over from the company logo, plus two semantic colors reserved for
-destructive/cautionary actions.
+The palette is built on a warm neutral (stone) scale — chosen over the
+cooler blue-gray "slate" default specifically to avoid the generic-SaaS
+look — with a single green drawn from the logo, plus two semantic colors
+reserved for destructive/cautionary actions.
 
-- **Primary (#15803d):** Deep leaf green. The single primary call-to-action
-  color ("Add Employee", "Generate Payroll", "Log Attendance").
-- **Primary Container (#dcfce7) / On-Primary-Container (#166534):** The
-  active-state pair. "Active" status badges and the selected sidebar tab both
-  sit on this light green field with dark green text (the sidebar's selected
-  tab uses a marginally deeper variant, #14532d, for a touch more emphasis).
-- **Accent (#16a34a):** A brighter, single-purpose green reserved for the
-  "Reactivate" row action — never used for surfaces or primary buttons.
-- **Neutral (#f8fafc):** The page canvas — a barely-there slate, not pure
-  white, so white cards visibly lift off it.
-- **Surface (#ffffff) / Surface Muted (#e2e8f0):** Surface is the default
+- **Primary (#557a00):** The logo's leaf olive-green, darkened slightly off
+  the raw sampled hue (~#78a800) for AA contrast with white button text.
+  The single primary call-to-action color ("Add Employee", "Generate
+  Payroll", "Log Attendance").
+- **Primary Container (#e2f0c6) / On-Primary-Container (#45640a):** The
+  active-state pair. "Active" status badges and the selected sidebar tab
+  both sit on this light olive field with dark olive text (the sidebar's
+  selected tab uses a marginally deeper variant, #33480a, for a touch more
+  emphasis).
+- **Accent (#00a83c):** The vivid emerald glow sampled from the outline
+  around the logo's wordmark, darkened slightly for AA. A brighter,
+  single-purpose green reserved for the "Reactivate" row action — never
+  used for surfaces or primary buttons.
+- **Neutral (#fafaf9):** The page canvas — warm off-white (Tailwind
+  `stone-50`), not the cool blue-tinted gray typical of generic dashboard
+  templates, so white cards still visibly lift off it.
+- **Surface (#ffffff) / Surface Muted (#e7e5e4):** Surface is the default
   card/sidebar/table background and doubles as the base for secondary
-  buttons; surface-muted (the same slate-200 tone also used to outline
+  buttons; surface-muted (the same warm-gray tone also used to outline
   cards and the data table) fills an "Inactive" status pill.
-- **Border Subtle (#f1f5f9):** Separates items inside a card (e.g. the
+- **Border Subtle (#f5f5f4):** Separates items inside a card (e.g. the
   sidebar's logo block from its nav list) and fills neutral chips.
-- **Text Primary (#0f172a):** Page and section headings only.
-- **Text Emphasis (#334155):** Short inline labels that need to stand out
+- **Text Primary (#1c1917):** Page and section headings only — a warm
+  near-black, echoing the logo's true-black wordmark rather than a cool
+  slate-900.
+- **Text Emphasis (#44403c):** Short inline labels that need to stand out
   from body copy without being a heading (employment-type chips).
-- **Text Secondary (#475569):** The workhorse secondary tone — form labels,
+- **Text Secondary (#57534e):** The workhorse secondary tone — form labels,
   buttons, nav links, and primary table-cell data.
-- **Text Tertiary (#64748b):** Supporting copy one step quieter than
+- **Text Tertiary (#78716c):** Supporting copy one step quieter than
   secondary — page subtitles, table column headers, KPI card captions.
-- **Text Muted (#94a3b8):** The faintest tone — empty-state placeholders,
+- **Text Muted (#a8a29e):** The faintest tone — empty-state placeholders,
   disabled icons, and the sidebar's uppercase system labels.
 - **Warning (#d97706):** The "Deactivate" action only — amber signals a
-  reversible, cautionary state change, never an error.
+  reversible, cautionary state change, never an error. Deliberately *not*
+  drawn from the logo — semantic colors stay outside the brand palette so
+  they never get confused with a brand accent.
 - **Danger (#ef4444) / Danger Text (#b91c1c):** Danger is reserved for the
   "Delete" action; danger-text is the darker red used for inline error
   banner copy on the matching danger-container background.
@@ -194,11 +207,13 @@ tool feeling native and fast rather than "designed."
 ## Layout
 
 A fixed 240px sidebar (logo + nav) beside a fluid main content area with
-24px page padding. Content within a page stacks in a single column of
-cards/sections with 16-24px vertical rhythm; multi-column layouts (KPI card
-rows, report panels) use CSS grid that collapses to a single column below
-the medium breakpoint. Tables are the default way to present list data —
-prefer a table over a card grid whenever rows share the same fields.
+16px page padding — tight by design, not an oversight. Content within a
+page stacks in a single column of cards/sections with 12-16px vertical
+rhythm; cards themselves use 10-12px internal padding, not the airier
+16-24px common in generic dashboard templates. Multi-column layouts (KPI
+card rows, report panels) use CSS grid that collapses to a single column
+below the medium breakpoint. Tables are the default way to present list
+data — prefer a table over a card grid whenever rows share the same fields.
 
 ## Elevation & Depth
 
@@ -258,3 +273,11 @@ status badges and chips:
 - **Do** use Label Caps only for the sidebar's structural chrome. **Don't**
   apply tracked uppercase styling to table headers — use Label Table (no
   tracking) so tables read as data, not navigation.
+- **Do** keep every surface a single flat color. **Don't** use a gradient
+  anywhere — not on buttons, headers, cards, or backgrounds — even a subtle
+  one. Flat color is what keeps this reading as an operations tool instead
+  of a generic SaaS marketing page.
+- **Do** keep paddings and gaps tight (see Layout) — this is a dense,
+  ledger-like tool. **Don't** default to Tailwind's larger spacing steps
+  (`p-6`, `gap-6`, gap-based `space-y-6` and above) just because they're the
+  common default elsewhere; they read as too loose for this product.
