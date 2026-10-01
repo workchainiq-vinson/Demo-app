@@ -1,10 +1,11 @@
-import { Banknote, CalendarClock, LayoutDashboard, Sprout, Users } from "lucide-react";
+import { Banknote, CalendarClock, Clock, LayoutDashboard, Sprout, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/employees", label: "Employees", icon: Users, end: false },
+  { to: "/shifts", label: "Shifts", icon: Clock, end: false },
   { to: "/attendance", label: "Attendance", icon: CalendarClock, end: false },
   { to: "/pakyaw", label: "Pakyaw Entry", icon: Sprout, end: false },
   { to: "/payroll", label: "Payroll", icon: Banknote, end: false },
