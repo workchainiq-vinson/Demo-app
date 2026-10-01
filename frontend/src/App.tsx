@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import EmployeeDirectory from "./pages/EmployeeDirectory";
 import PakyawEntry from "./pages/PakyawEntry";
 import PayrollGeneration from "./pages/PayrollGeneration";
+import ShiftManagement from "./pages/ShiftManagement";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="/employees" element={<EmployeeDirectory />} />
+        <Route path="/shifts" element={<ShiftManagement />} />
         <Route path="/attendance" element={<AttendanceEntry />} />
         <Route path="/pakyaw" element={<PakyawEntry />} />
         <Route path="/payroll" element={<PayrollGeneration />} />
