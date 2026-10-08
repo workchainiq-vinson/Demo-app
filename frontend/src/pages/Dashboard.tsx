@@ -14,13 +14,8 @@ import {
 } from "../api/reports";
 import type { DashboardSummary, Employee, EmploymentStatus, PayrollRun } from "../api/types";
 import { EMPLOYMENT_STATUSES, EMPLOYMENT_STATUS_LABELS, formatPeso } from "../lib/format";
+import { firstOfMonthIso, todayIso } from "../lib/dates";
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
-const firstOfMonthIso = () => {
-  const d = new Date();
-  d.setDate(1);
-  return d.toISOString().slice(0, 10);
-};
 
 function KpiCard({
   icon: Icon,

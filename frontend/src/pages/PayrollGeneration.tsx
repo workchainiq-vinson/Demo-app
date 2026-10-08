@@ -3,13 +3,8 @@ import { useEffect, useState } from "react";
 import { generatePayroll, getPayslipPdfUrl, listPayrollRuns } from "../api/payroll";
 import type { PayrollRun } from "../api/types";
 import { formatPeso } from "../lib/format";
+import { firstOfMonthIso, todayIso } from "../lib/dates";
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
-const firstOfMonthIso = () => {
-  const d = new Date();
-  d.setDate(1);
-  return d.toISOString().slice(0, 10);
-};
 
 export default function PayrollGeneration() {
   const [cutoffStart, setCutoffStart] = useState(firstOfMonthIso());

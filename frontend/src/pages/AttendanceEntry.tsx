@@ -4,8 +4,8 @@ import { approveOvertime, createAttendance, listAttendance } from "../api/attend
 import { listEmployees } from "../api/employees";
 import { listHolidays } from "../api/holidays";
 import type { Attendance, Employee, Holiday } from "../api/types";
+import { addDays, todayIso } from "../lib/dates";
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 export default function AttendanceEntry() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -241,10 +241,4 @@ export default function AttendanceEntry() {
       </div>
     </div>
   );
-}
-
-function addDays(iso: string, days: number): string {
-  const d = new Date(iso + "T00:00:00");
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
 }
