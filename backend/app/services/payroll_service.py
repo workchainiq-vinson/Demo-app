@@ -13,7 +13,7 @@ from app.models.attendance import Attendance
 from app.models.employee import Employee, EmploymentType
 from app.models.holiday import Holiday
 from app.models.pakyaw import PakyawLog
-from app.services import holiday_service, nsd_service, overtime_service, statutory_service
+from app.services import deduction_service, holiday_service, nsd_service, overtime_service, statutory_service
 
 TWO_PLACES = Decimal("0.01")
 
@@ -36,6 +36,7 @@ def calculate_payroll_for_cutoff(
     cutoff_start: date,
     cutoff_end: date,
     apply_statutory: bool = True,
+    apply_other_deductions: bool = True,
 ) -> dict:
     employee = db.query(Employee).filter(Employee.id == employee_id).one()
     daily_rate = Decimal(employee.daily_rate)
@@ -122,7 +123,12 @@ def calculate_payroll_for_cutoff(
         basic_salary_for_cutoff = regular_pay + pakyaw_pay
         statutory = statutory_service.compute_statutory_deductions(basic_salary_for_cutoff)
 
-    total_deductions = statutory["total"]
+    other_deductions: list[dict] = []
+    if apply_other_deductions:
+        other_deductions = deduction_service.compute_applicable_deductions(db, employee_id, cutoff_end)
+    other_deductions_total = _q(sum((d["amount"] for d in other_deductions), Decimal("0.00")))
+
+    total_deductions = _q(statutory["total"] + other_deductions_total)
     net_pay = _q(gross_pay - total_deductions)
 
     return {
@@ -133,6 +139,8 @@ def calculate_payroll_for_cutoff(
         "sss_deduction": statutory["sss"],
         "philhealth_deduction": statutory["philhealth"],
         "pagibig_deduction": statutory["pagibig"],
+        "other_deductions": other_deductions,
+        "other_deductions_total": other_deductions_total,
         "total_deductions": total_deductions,
         "gross_pay": gross_pay,
         "net_pay": net_pay,

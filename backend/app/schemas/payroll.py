@@ -4,11 +4,14 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.deduction import AppliedDeductionRead
+
 
 class PayrollGenerateRequest(BaseModel):
     cutoff_start: date
     cutoff_end: date
     apply_statutory_deductions: bool = True
+    apply_other_deductions: bool = True  # loans, MP2, petty cash
     employee_ids: Optional[list[int]] = None  # None = all active employees
 
 
@@ -23,6 +26,8 @@ class PayslipRead(BaseModel):
     sss_deduction: Decimal
     philhealth_deduction: Decimal
     pagibig_deduction: Decimal
+    other_deductions: Decimal = Decimal("0.00")  # sum of loans / MP2 / petty cash
+    deductions: list[AppliedDeductionRead] = []
     total_deductions: Decimal
     net_pay: Decimal
     breakdown: dict

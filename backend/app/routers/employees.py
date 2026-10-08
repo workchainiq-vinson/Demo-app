@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.attendance import Attendance
-from app.models.employee import Employee
+from app.models.deduction import EmployeeDeduction
+from app.models.employee import Employee, EmploymentStatus
 from app.models.pakyaw import PakyawLog
 from app.models.payroll import PayrollPayslip
 from app.schemas.employee import EmployeeCreate, EmployeeRead, EmployeeUpdate
@@ -14,10 +15,16 @@ router = APIRouter(prefix="/employees", tags=["employees"])
 
 
 @router.get("", response_model=list[EmployeeRead])
-def list_employees(is_active: Optional[bool] = None, db: Session = Depends(get_db)):
+def list_employees(
+    is_active: Optional[bool] = None,
+    employment_status: Optional[EmploymentStatus] = None,
+    db: Session = Depends(get_db),
+):
     query = db.query(Employee)
     if is_active is not None:
         query = query.filter(Employee.is_active == is_active)
+    if employment_status is not None:
+        query = query.filter(Employee.employment_status == employment_status)
     return query.order_by(Employee.last_name, Employee.first_name).all()
 
 
@@ -62,12 +69,13 @@ def delete_employee(employee_id: int, db: Session = Depends(get_db)):
         db.query(Attendance).filter(Attendance.employee_id == employee_id).first() is not None
         or db.query(PakyawLog).filter(PakyawLog.employee_id == employee_id).first() is not None
         or db.query(PayrollPayslip).filter(PayrollPayslip.employee_id == employee_id).first() is not None
+        or db.query(EmployeeDeduction).filter(EmployeeDeduction.employee_id == employee_id).first() is not None
     )
     if has_history:
         raise HTTPException(
             status_code=400,
             detail=(
-                "Cannot delete an employee with existing attendance, pakyaw, or payroll records. "
+                "Cannot delete an employee with existing attendance, pakyaw, payroll, or loan/deduction records. "
                 "Set the employee to Inactive instead to preserve payroll history."
             ),
         )

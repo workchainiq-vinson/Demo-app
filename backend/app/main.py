@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import Base, engine
-from app.routers import attendance, dashboard, employees, holidays, pakyaw, payroll, reports, shifts
+from app.database import Base, engine, run_additive_migrations
+from app.routers import attendance, dashboard, deductions, employees, holidays, pakyaw, payroll, reports, shifts
 
 Base.metadata.create_all(bind=engine)
+run_additive_migrations(engine)
 
 app = FastAPI(title="Bio Green HR & Payroll System")
 
@@ -24,6 +25,7 @@ app.include_router(holidays.router)
 app.include_router(payroll.router)
 app.include_router(dashboard.router)
 app.include_router(reports.router)
+app.include_router(deductions.router)
 
 
 @app.get("/")

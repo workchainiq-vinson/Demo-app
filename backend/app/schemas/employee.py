@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.employee import EmploymentType
+from app.models.employee import EmploymentStatus, EmploymentType
 
 
 class EmployeeBase(BaseModel):
@@ -13,6 +13,7 @@ class EmployeeBase(BaseModel):
     last_name: str
     department: Optional[str] = None
     employment_type: EmploymentType = EmploymentType.REGULAR
+    employment_status: EmploymentStatus = EmploymentStatus.REGULAR
     daily_rate: Decimal = Decimal("0.00")
     rest_day_of_week: Optional[int] = None
     default_shift_id: Optional[int] = None
@@ -29,6 +30,7 @@ class EmployeeUpdate(BaseModel):
     last_name: Optional[str] = None
     department: Optional[str] = None
     employment_type: Optional[EmploymentType] = None
+    employment_status: Optional[EmploymentStatus] = None
     daily_rate: Optional[Decimal] = None
     rest_day_of_week: Optional[int] = None
     default_shift_id: Optional[int] = None

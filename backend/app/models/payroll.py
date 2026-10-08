@@ -38,3 +38,4 @@ class PayrollPayslip(Base):
 
     payroll_run = relationship("PayrollRun", back_populates="payslips")
     employee = relationship("Employee", back_populates="payslips")
+    applied_deductions = relationship("PayslipDeduction", back_populates="payslip")

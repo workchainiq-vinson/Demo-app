@@ -5,6 +5,7 @@ export const generatePayroll = async (payload: {
   cutoff_start: string;
   cutoff_end: string;
   apply_statutory_deductions: boolean;
+  apply_other_deductions: boolean;
   employee_ids?: number[] | null;
 }): Promise<PayrollRun> => {
   const { data } = await api.post<PayrollRun>("/payroll/generate", payload);

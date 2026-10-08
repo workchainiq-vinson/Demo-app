@@ -12,6 +12,12 @@ class EmploymentType(str, enum.Enum):
     MIXED = "MIXED"
 
 
+class EmploymentStatus(str, enum.Enum):
+    REGULAR = "REGULAR"
+    PROBATIONARY = "PROBATIONARY"
+    ON_CALL = "ON_CALL"
+
+
 class Employee(Base):
     __tablename__ = "employees"
 
@@ -21,6 +27,7 @@ class Employee(Base):
     last_name = Column(String, nullable=False)
     department = Column(String, nullable=True)
     employment_type = Column(Enum(EmploymentType), nullable=False, default=EmploymentType.REGULAR)
+    employment_status = Column(Enum(EmploymentStatus), nullable=False, default=EmploymentStatus.REGULAR)
     daily_rate = Column(Numeric(10, 2), nullable=False, default=0)
     rest_day_of_week = Column(Integer, nullable=True)  # 0=Monday ... 6=Sunday
     default_shift_id = Column(Integer, ForeignKey("shifts.id"), nullable=True)
@@ -32,3 +39,4 @@ class Employee(Base):
     attendances = relationship("Attendance", back_populates="employee")
     pakyaw_logs = relationship("PakyawLog", back_populates="employee")
     payslips = relationship("PayrollPayslip", back_populates="employee")
+    deductions = relationship("EmployeeDeduction", back_populates="employee")
