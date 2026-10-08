@@ -4,8 +4,8 @@ import { createDeduction, deleteDeduction, listDeductions, updateDeduction } fro
 import { listEmployees } from "../api/employees";
 import type { DeductionType, Employee, EmployeeDeduction } from "../api/types";
 import { DEDUCTION_LABELS, DEDUCTION_TYPES, formatPeso } from "../lib/format";
+import { todayIso } from "../lib/dates";
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 interface FormState {
   employee_id: number | "";

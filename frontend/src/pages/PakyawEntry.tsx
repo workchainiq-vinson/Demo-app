@@ -4,8 +4,8 @@ import { createGroupPakyawLog, createIndividualPakyawLog, listPakyawCatalog, lis
 import { listEmployees } from "../api/employees";
 import type { Employee, PakyawCatalogItem, PakyawLog } from "../api/types";
 import { formatPeso } from "../lib/format";
+import { todayIso } from "../lib/dates";
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 export default function PakyawEntry() {
   const [mode, setMode] = useState<"individual" | "group">("individual");
