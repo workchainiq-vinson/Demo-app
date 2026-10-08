@@ -6,10 +6,13 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.deduction import EmployeeDeduction, PayslipDeduction
 from app.models.employee import Employee
 from app.models.payroll import PayrollPayslip, PayrollRun
 from app.pdf.payslip_generator import generate_payslip_pdf
+from app.schemas.deduction import AppliedDeductionRead
 from app.schemas.payroll import PayrollGenerateRequest, PayrollRunRead, PayslipRead
+from app.services.deduction_service import DEDUCTION_LABELS
 from app.services.payroll_service import calculate_payroll_for_cutoff
 
 router = APIRouter(prefix="/payroll", tags=["payroll"])
@@ -22,6 +25,15 @@ def _decimal_default(obj):
 
 
 def _to_payslip_read(payslip: PayrollPayslip, employee: Employee) -> PayslipRead:
+    applied = [
+        AppliedDeductionRead(
+            deduction_type=d.deduction_type,
+            label=DEDUCTION_LABELS[d.deduction_type],
+            amount=d.amount,
+        )
+        for d in payslip.applied_deductions
+    ]
+    other_total = sum((Decimal(d.amount) for d in payslip.applied_deductions), Decimal("0.00"))
     return PayslipRead(
         id=payslip.id,
         payroll_run_id=payslip.payroll_run_id,
@@ -31,6 +43,8 @@ def _to_payslip_read(payslip: PayrollPayslip, employee: Employee) -> PayslipRead
         sss_deduction=payslip.sss_deduction,
         philhealth_deduction=payslip.philhealth_deduction,
         pagibig_deduction=payslip.pagibig_deduction,
+        other_deductions=other_total,
+        deductions=applied,
         total_deductions=payslip.total_deductions,
         net_pay=payslip.net_pay,
         breakdown=json.loads(payslip.breakdown) if payslip.breakdown else {},
@@ -63,6 +77,7 @@ def generate_payroll(payload: PayrollGenerateRequest, db: Session = Depends(get_
             payload.cutoff_start,
             payload.cutoff_end,
             apply_statutory=payload.apply_statutory_deductions,
+            apply_other_deductions=payload.apply_other_deductions,
         )
         breakdown_json = json.dumps(result["breakdown"], default=_decimal_default)
         payslip = PayrollPayslip(
@@ -78,6 +93,27 @@ def generate_payroll(payload: PayrollGenerateRequest, db: Session = Depends(get_
         )
         db.add(payslip)
         db.flush()
+
+        # Persist each applied deduction and burn down its balance in the same
+        # transaction, so a failed run never leaves balances half-updated.
+        for item in result["other_deductions"]:
+            employee_deduction = db.get(EmployeeDeduction, item["employee_deduction_id"])
+            db.add(
+                PayslipDeduction(
+                    payslip=payslip,
+                    employee_deduction=employee_deduction,
+                    deduction_type=item["deduction_type"],
+                    amount=item["amount"],
+                )
+            )
+            if employee_deduction.remaining_balance is not None:
+                remaining = Decimal(employee_deduction.remaining_balance) - item["amount"]
+                if remaining <= 0:
+                    remaining = Decimal("0.00")
+                    employee_deduction.is_active = False
+                employee_deduction.remaining_balance = remaining
+        db.flush()
+
         payslips_read.append(_to_payslip_read(payslip, employee))
 
     db.commit()

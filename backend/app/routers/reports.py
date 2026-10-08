@@ -1,6 +1,7 @@
 import csv
 import io
 from datetime import date as date_type
+from decimal import Decimal
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,14 +10,38 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.attendance import Attendance
-from app.models.employee import Employee
+from app.models.employee import Employee, EmploymentStatus
 from app.models.pakyaw import PakyawLog
 from app.models.payroll import PayrollPayslip, PayrollRun
+from app.pdf.common import STATUS_LABELS
 from app.pdf.dtr_report_generator import generate_dtr_summary_pdf
 from app.pdf.payroll_summary_generator import generate_payroll_summary_pdf
+from app.services.deduction_service import DEDUCTION_LABELS, DEDUCTION_ORDER
 from app.services.dtr_service import compute_dtr_summary, group_by_department
 
 router = APIRouter(prefix="/reports", tags=["reports"])
+
+
+def _status_label(employment_status: Optional[EmploymentStatus]) -> Optional[str]:
+    return STATUS_LABELS[employment_status.value] if employment_status else None
+
+
+def _filename_suffix(employment_status: Optional[EmploymentStatus]) -> str:
+    return f"_{employment_status.value.lower()}" if employment_status else ""
+
+
+def _run_payslips(run: PayrollRun, employment_status: Optional[EmploymentStatus]) -> list[PayrollPayslip]:
+    payslips = [p for p in run.payslips if employment_status is None or p.employee.employment_status == employment_status]
+    if not payslips:
+        raise HTTPException(status_code=404, detail="No payslips found for this employment status in this payroll run")
+    return payslips
+
+
+def _other_deductions_by_type(payslip: PayrollPayslip) -> dict:
+    sums = {deduction_type: Decimal("0.00") for deduction_type in DEDUCTION_ORDER}
+    for applied in payslip.applied_deductions:
+        sums[applied.deduction_type] += Decimal(applied.amount)
+    return sums
 
 
 def _csv_response(rows: list[list], header: list[str], filename: str) -> StreamingResponse:
@@ -33,38 +58,56 @@ def _csv_response(rows: list[list], header: list[str], filename: str) -> Streami
 
 
 @router.get("/payroll-summary/{run_id}/csv")
-def payroll_summary_csv(run_id: int, db: Session = Depends(get_db)):
+def payroll_summary_csv(
+    run_id: int,
+    employment_status: Optional[EmploymentStatus] = None,
+    db: Session = Depends(get_db),
+):
     run = db.query(PayrollRun).filter(PayrollRun.id == run_id).first()
     if not run:
         raise HTTPException(status_code=404, detail="Payroll run not found")
+    payslips = _run_payslips(run, employment_status)
 
-    rows = [
-        [
-            p.employee.employee_code,
-            f"{p.employee.first_name} {p.employee.last_name}",
-            str(p.gross_pay),
-            str(p.sss_deduction),
-            str(p.philhealth_deduction),
-            str(p.pagibig_deduction),
-            str(p.total_deductions),
-            str(p.net_pay),
-        ]
-        for p in run.payslips
-    ]
-    header = ["Employee Code", "Employee Name", "Gross Pay", "SSS", "PhilHealth", "Pag-IBIG", "Total Deductions", "Net Pay"]
-    filename = f"payroll_summary_{run.cutoff_start}_{run.cutoff_end}.csv"
+    rows = []
+    for p in payslips:
+        other = _other_deductions_by_type(p)
+        rows.append(
+            [
+                p.employee.employee_code,
+                f"{p.employee.first_name} {p.employee.last_name}",
+                STATUS_LABELS[p.employee.employment_status.value],
+                str(p.gross_pay),
+                str(p.sss_deduction),
+                str(p.philhealth_deduction),
+                str(p.pagibig_deduction),
+                *[str(other[t]) for t in DEDUCTION_ORDER],
+                str(p.total_deductions),
+                str(p.net_pay),
+            ]
+        )
+    header = (
+        ["Employee Code", "Employee Name", "Employment Status", "Gross Pay", "SSS", "PhilHealth", "Pag-IBIG"]
+        + [DEDUCTION_LABELS[t] for t in DEDUCTION_ORDER]
+        + ["Total Deductions", "Net Pay"]
+    )
+    filename = f"payroll_summary_{run.cutoff_start}_{run.cutoff_end}{_filename_suffix(employment_status)}.csv"
     return _csv_response(rows, header, filename)
 
 
 @router.get("/payroll-summary/{run_id}/pdf")
-def payroll_summary_pdf(run_id: int, db: Session = Depends(get_db)):
+def payroll_summary_pdf(
+    run_id: int,
+    employment_status: Optional[EmploymentStatus] = None,
+    db: Session = Depends(get_db),
+):
     run = db.query(PayrollRun).filter(PayrollRun.id == run_id).first()
     if not run:
         raise HTTPException(status_code=404, detail="Payroll run not found")
+    payslips = _run_payslips(run, employment_status)
 
-    payslips_with_names = [(p, f"{p.employee.first_name} {p.employee.last_name}") for p in run.payslips]
-    pdf_buffer = generate_payroll_summary_pdf(run, payslips_with_names)
-    filename = f"payroll_summary_{run.cutoff_start}_{run.cutoff_end}.pdf"
+    payslips_with_names = [(p, f"{p.employee.first_name} {p.employee.last_name}") for p in payslips]
+    pdf_buffer = generate_payroll_summary_pdf(run, payslips_with_names, _status_label(employment_status))
+    filename = f"payroll_summary_{run.cutoff_start}_{run.cutoff_end}{_filename_suffix(employment_status)}.pdf"
     return StreamingResponse(
         pdf_buffer,
         media_type="application/pdf",
@@ -160,6 +203,8 @@ def employees_csv(db: Session = Depends(get_db)):
         [
             e.employee_code,
             f"{e.first_name} {e.last_name}",
+            e.department or "",
+            STATUS_LABELS[e.employment_status.value],
             e.employment_type.value,
             str(e.daily_rate),
             str(e.rest_day_of_week) if e.rest_day_of_week is not None else "",
@@ -168,7 +213,17 @@ def employees_csv(db: Session = Depends(get_db)):
         ]
         for e in records
     ]
-    header = ["Employee Code", "Employee Name", "Employment Type", "Daily Rate", "Rest Day (0=Mon)", "Default Shift", "Status"]
+    header = [
+        "Employee Code",
+        "Employee Name",
+        "Department",
+        "Employment Status",
+        "Pay Type",
+        "Daily Rate",
+        "Rest Day (0=Mon)",
+        "Default Shift",
+        "Active",
+    ]
     filename = "employee_directory.csv"
     return _csv_response(rows, header, filename)
 
@@ -178,17 +233,18 @@ def dtr_summary_pdf(
     date_from: date_type,
     date_to: date_type,
     department: Optional[str] = None,
+    employment_status: Optional[EmploymentStatus] = None,
     db: Session = Depends(get_db),
 ):
-    rows = compute_dtr_summary(db, date_from, date_to)
+    rows = compute_dtr_summary(db, date_from, date_to, employment_status)
     if department:
         rows = [r for r in rows if r["department"] == department]
     if not rows:
         raise HTTPException(status_code=404, detail="No attendance records found for this period")
 
     rows_by_department = group_by_department(rows)
-    pdf_buffer = generate_dtr_summary_pdf(date_from, date_to, rows_by_department)
-    filename = f"dtr_summary_{date_from}_{date_to}.pdf"
+    pdf_buffer = generate_dtr_summary_pdf(date_from, date_to, rows_by_department, _status_label(employment_status))
+    filename = f"dtr_summary_{date_from}_{date_to}{_filename_suffix(employment_status)}.pdf"
     return StreamingResponse(
         pdf_buffer,
         media_type="application/pdf",

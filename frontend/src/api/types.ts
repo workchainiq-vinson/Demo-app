@@ -1,4 +1,6 @@
 export type EmploymentType = "REGULAR" | "PAKYAW" | "MIXED";
+export type EmploymentStatus = "REGULAR" | "PROBATIONARY" | "ON_CALL";
+export type DeductionType = "SSS_LOAN" | "PAGIBIG_LOAN" | "MP2" | "CALAMITY_LOAN" | "PETTY_CASH";
 export type HolidayType = "REGULAR" | "SPECIAL_NON_WORKING";
 
 export interface Shift {
@@ -16,6 +18,7 @@ export interface Employee {
   last_name: string;
   department: string | null;
   employment_type: EmploymentType;
+  employment_status: EmploymentStatus;
   daily_rate: string;
   rest_day_of_week: number | null;
   default_shift_id: number | null;
@@ -28,6 +31,7 @@ export interface EmployeeInput {
   last_name: string;
   department: string | null;
   employment_type: EmploymentType;
+  employment_status: EmploymentStatus;
   daily_rate: string;
   rest_day_of_week: number | null;
   default_shift_id: number | null;
@@ -103,6 +107,8 @@ export interface Payslip {
   sss_deduction: string;
   philhealth_deduction: string;
   pagibig_deduction: string;
+  other_deductions: string;
+  deductions: AppliedDeduction[];
   total_deductions: string;
   net_pay: string;
   breakdown: PayslipBreakdown;
@@ -167,4 +173,30 @@ export interface DashboardSummary {
   attendance_summary_this_month: AttendanceSummaryThisMonth;
   pakyaw_summary_this_month: PakyawSummaryThisMonth;
   upcoming_holidays: UpcomingHoliday[];
+}
+
+export interface AppliedDeduction {
+  deduction_type: DeductionType;
+  label: string;
+  amount: string;
+}
+
+export interface EmployeeDeduction {
+  id: number;
+  employee_id: number;
+  deduction_type: DeductionType;
+  total_amount: string | null;
+  amount_per_cutoff: string;
+  remaining_balance: string | null;
+  start_date: string;
+  is_active: boolean;
+}
+
+export interface EmployeeDeductionInput {
+  employee_id: number;
+  deduction_type: DeductionType;
+  total_amount: string | null;
+  amount_per_cutoff: string;
+  start_date: string;
+  is_active: boolean;
 }

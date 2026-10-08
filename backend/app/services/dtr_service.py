@@ -20,7 +20,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.attendance import Attendance
-from app.models.employee import Employee
+from app.models.employee import Employee, EmploymentStatus
 from app.services.holiday_service import classify_day
 
 CLASSIFICATIONS = ["regular", "rest_day", "rest_day_special", "rest_day_legal", "legal_holiday", "special_holiday"]
@@ -37,8 +37,16 @@ def _empty_bucket() -> dict:
     return {"days": 0, "nd_hours": Decimal("0.00"), "ot_hours": Decimal("0.00"), "ndo_hours": Decimal("0.00")}
 
 
-def compute_dtr_summary(db: Session, date_from: date, date_to: date) -> list[dict]:
-    employees = db.query(Employee).order_by(Employee.department, Employee.last_name, Employee.first_name).all()
+def compute_dtr_summary(
+    db: Session,
+    date_from: date,
+    date_to: date,
+    employment_status: Optional[EmploymentStatus] = None,
+) -> list[dict]:
+    employee_query = db.query(Employee)
+    if employment_status is not None:
+        employee_query = employee_query.filter(Employee.employment_status == employment_status)
+    employees = employee_query.order_by(Employee.department, Employee.last_name, Employee.first_name).all()
 
     rows = []
     for employee in employees:

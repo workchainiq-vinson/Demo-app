@@ -12,8 +12,8 @@ import {
   getPayrollSummaryCsvUrl,
   getPayrollSummaryPdfUrl,
 } from "../api/reports";
-import type { DashboardSummary, Employee, PayrollRun } from "../api/types";
-import { formatPeso } from "../lib/format";
+import type { DashboardSummary, Employee, EmploymentStatus, PayrollRun } from "../api/types";
+import { EMPLOYMENT_STATUSES, EMPLOYMENT_STATUS_LABELS, formatPeso } from "../lib/format";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const firstOfMonthIso = () => {
@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [pakyawTo, setPakyawTo] = useState(todayIso());
   const [dtrFrom, setDtrFrom] = useState(firstOfMonthIso());
   const [dtrTo, setDtrTo] = useState(todayIso());
+  const [reportStatus, setReportStatus] = useState<EmploymentStatus | "">("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -167,9 +168,26 @@ export default function Dashboard() {
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-        <div className="mb-2 flex items-center gap-2">
-          <FileText size={16} className="text-slate-500" />
-          <p className="text-sm font-semibold text-slate-700">Downloadable Reports</p>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <FileText size={16} className="text-slate-500" />
+            <p className="text-sm font-semibold text-slate-700">Downloadable Reports</p>
+          </div>
+          <label className="flex items-center gap-1.5 text-xs text-slate-500">
+            Payroll &amp; DTR reports for
+            <select
+              value={reportStatus}
+              onChange={(e) => setReportStatus(e.target.value as EmploymentStatus | "")}
+              className="rounded-lg border border-slate-300 px-1.5 py-1 text-xs text-slate-700"
+            >
+              <option value="">All employees</option>
+              {EMPLOYMENT_STATUSES.map((st) => (
+                <option key={st} value={st}>
+                  {EMPLOYMENT_STATUS_LABELS[st]} only
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div className="rounded-lg border border-slate-100 p-2.5">
@@ -188,7 +206,7 @@ export default function Dashboard() {
             </select>
             <div className="flex gap-2">
               <a
-                href={selectedRunId ? getPayrollSummaryPdfUrl(selectedRunId) : undefined}
+                href={selectedRunId ? getPayrollSummaryPdfUrl(selectedRunId, reportStatus) : undefined}
                 target="_blank"
                 rel="noreferrer"
                 aria-disabled={!selectedRunId}
@@ -199,7 +217,7 @@ export default function Dashboard() {
                 <Download size={12} /> PDF
               </a>
               <a
-                href={selectedRunId ? getPayrollSummaryCsvUrl(selectedRunId) : undefined}
+                href={selectedRunId ? getPayrollSummaryCsvUrl(selectedRunId, reportStatus) : undefined}
                 target="_blank"
                 rel="noreferrer"
                 aria-disabled={!selectedRunId}
@@ -281,7 +299,7 @@ export default function Dashboard() {
               />
             </div>
             <a
-              href={getDtrSummaryPdfUrl({ date_from: dtrFrom, date_to: dtrTo })}
+              href={getDtrSummaryPdfUrl({ date_from: dtrFrom, date_to: dtrTo, employment_status: reportStatus })}
               target="_blank"
               rel="noreferrer"
               className="flex items-center justify-center gap-1 rounded-lg border border-slate-300 px-1.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"

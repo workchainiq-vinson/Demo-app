@@ -11,8 +11,9 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from app.pdf.common import COMPANY_NAME, LOGO_ASPECT_RATIO, LOGO_PATH
+from app.pdf.common import COMPANY_NAME, LOGO_ASPECT_RATIO, LOGO_PATH, STATUS_LABELS
 from app.pdf.common import php as _php
+from app.services.deduction_service import DEDUCTION_LABELS
 
 
 def generate_payslip_pdf(employee, payroll_run, payslip, breakdown: dict) -> io.BytesIO:
@@ -45,9 +46,10 @@ def generate_payslip_pdf(employee, payroll_run, payslip, breakdown: dict) -> io.
     info_table = Table(
         [
             ["Employee Name:", f"{employee.first_name} {employee.last_name}", "Employee Code:", employee.employee_code],
-            ["Employment Type:", employee.employment_type.value, "Cutoff Period:", f"{payroll_run.cutoff_start} to {payroll_run.cutoff_end}"],
+            ["Employment Status:", STATUS_LABELS[employee.employment_status.value], "Pay Type:", employee.employment_type.value],
+            ["Cutoff Period:", f"{payroll_run.cutoff_start} to {payroll_run.cutoff_end}", "", ""],
         ],
-        colWidths=[1.3 * inch, 2.2 * inch, 1.3 * inch, 2.2 * inch],
+        colWidths=[1.5 * inch, 2.1 * inch, 1.3 * inch, 2.1 * inch],
     )
     info_table.setStyle(
         TableStyle(
@@ -90,14 +92,17 @@ def generate_payslip_pdf(employee, payroll_run, payslip, breakdown: dict) -> io.
     )
     elements.append(earnings_table)
 
-    elements.append(Paragraph("Statutory Deductions", section_style))
+    applied_deductions = list(payslip.applied_deductions)
+    elements.append(Paragraph("Deductions" if applied_deductions else "Statutory Deductions", section_style))
     deduction_rows = [
         ["Description", "Amount"],
         ["SSS Employee Share", _php(payslip.sss_deduction)],
         ["PhilHealth Employee Share", _php(payslip.philhealth_deduction)],
         ["Pag-IBIG Employee Share", _php(payslip.pagibig_deduction)],
-        ["TOTAL DEDUCTIONS", _php(payslip.total_deductions)],
     ]
+    for applied in applied_deductions:
+        deduction_rows.append([DEDUCTION_LABELS[applied.deduction_type], _php(applied.amount)])
+    deduction_rows.append(["TOTAL DEDUCTIONS", _php(payslip.total_deductions)])
     deduction_table = Table(deduction_rows, colWidths=[4 * inch, 2 * inch])
     deduction_table.setStyle(
         TableStyle(

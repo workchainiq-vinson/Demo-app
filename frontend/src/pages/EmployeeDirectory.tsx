@@ -2,8 +2,8 @@ import { Pencil, Plus, Trash2, UserCheck, UserX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createEmployee, deleteEmployee, listEmployees, updateEmployee } from "../api/employees";
 import { listShifts } from "../api/shifts";
-import type { Employee, EmployeeInput, EmploymentType, Shift } from "../api/types";
-import { DAY_NAMES, formatPeso } from "../lib/format";
+import type { Employee, EmployeeInput, EmploymentStatus, EmploymentType, Shift } from "../api/types";
+import { DAY_NAMES, EMPLOYMENT_STATUSES, EMPLOYMENT_STATUS_LABELS, formatPeso } from "../lib/format";
 
 const EMPLOYMENT_TYPES: EmploymentType[] = ["REGULAR", "PAKYAW", "MIXED"];
 
@@ -13,6 +13,7 @@ const emptyForm: EmployeeInput = {
   last_name: "",
   department: null,
   employment_type: "REGULAR",
+  employment_status: "REGULAR",
   daily_rate: "0.00",
   rest_day_of_week: 6,
   default_shift_id: null,
@@ -61,6 +62,7 @@ export default function EmployeeDirectory() {
       last_name: emp.last_name,
       department: emp.department,
       employment_type: emp.employment_type,
+      employment_status: emp.employment_status,
       daily_rate: emp.daily_rate,
       rest_day_of_week: emp.rest_day_of_week,
       default_shift_id: emp.default_shift_id,
@@ -150,7 +152,8 @@ export default function EmployeeDirectory() {
               <th className="px-3 py-2">Code</th>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Department</th>
-              <th className="px-3 py-2">Type</th>
+              <th className="px-3 py-2">Employment</th>
+              <th className="px-3 py-2">Pay Type</th>
               <th className="px-3 py-2">Daily Rate</th>
               <th className="px-3 py-2">Rest Day</th>
               <th className="px-3 py-2">Shift</th>
@@ -161,13 +164,13 @@ export default function EmployeeDirectory() {
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={9} className="px-3 py-4 text-center text-slate-400">
+                <td colSpan={10} className="px-3 py-4 text-center text-slate-400">
                   Loading...
                 </td>
               </tr>
             ) : employees.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-3 py-4 text-center text-slate-400">
+                <td colSpan={10} className="px-3 py-4 text-center text-slate-400">
                   No employees yet.
                 </td>
               </tr>
@@ -179,6 +182,11 @@ export default function EmployeeDirectory() {
                     {emp.first_name} {emp.last_name}
                   </td>
                   <td className="px-3 py-2 text-slate-600">{emp.department ?? "—"}</td>
+                  <td className="px-3 py-2">
+                    <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700">
+                      {EMPLOYMENT_STATUS_LABELS[emp.employment_status]}
+                    </span>
+                  </td>
                   <td className="px-3 py-2">
                     <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700">
                       {emp.employment_type}
@@ -253,7 +261,7 @@ export default function EmployeeDirectory() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-slate-600">Employment Type</label>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Pay Type</label>
                   <select
                     value={form.employment_type}
                     onChange={(e) => setForm({ ...form, employment_type: e.target.value as EmploymentType })}
@@ -267,14 +275,30 @@ export default function EmployeeDirectory() {
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Department</label>
-                <input
-                  value={form.department ?? ""}
-                  onChange={(e) => setForm({ ...form, department: e.target.value === "" ? null : e.target.value })}
-                  placeholder="e.g. Administration, Production"
-                  className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Department</label>
+                  <input
+                    value={form.department ?? ""}
+                    onChange={(e) => setForm({ ...form, department: e.target.value === "" ? null : e.target.value })}
+                    placeholder="e.g. Administration"
+                    className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Employment Status</label>
+                  <select
+                    value={form.employment_status}
+                    onChange={(e) => setForm({ ...form, employment_status: e.target.value as EmploymentStatus })}
+                    className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
+                  >
+                    {EMPLOYMENT_STATUSES.map((st) => (
+                      <option key={st} value={st}>
+                        {EMPLOYMENT_STATUS_LABELS[st]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>

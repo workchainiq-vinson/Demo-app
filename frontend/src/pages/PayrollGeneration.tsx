@@ -15,6 +15,7 @@ export default function PayrollGeneration() {
   const [cutoffStart, setCutoffStart] = useState(firstOfMonthIso());
   const [cutoffEnd, setCutoffEnd] = useState(todayIso());
   const [applyStatutory, setApplyStatutory] = useState(true);
+  const [applyOther, setApplyOther] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [runs, setRuns] = useState<PayrollRun[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
@@ -43,6 +44,7 @@ export default function PayrollGeneration() {
         cutoff_start: cutoffStart,
         cutoff_end: cutoffEnd,
         apply_statutory_deductions: applyStatutory,
+        apply_other_deductions: applyOther,
       });
       setRuns((prev) => [run, ...prev]);
       setSelectedRunId(run.id);
@@ -101,6 +103,15 @@ export default function PayrollGeneration() {
           <input type="checkbox" checked={applyStatutory} onChange={(e) => setApplyStatutory(e.target.checked)} />
           Apply Statutory Deductions
         </label>
+        <div className="mb-1.5">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" checked={applyOther} onChange={(e) => setApplyOther(e.target.checked)} />
+            Apply Loans &amp; Other Deductions
+          </label>
+          <p className="ml-6 text-xs text-slate-400">
+            Reduces loan balances, so don&apos;t run the same cutoff twice with this on.
+          </p>
+        </div>
         <button
           type="submit"
           disabled={generating}
@@ -137,6 +148,7 @@ export default function PayrollGeneration() {
               <th className="px-3 py-2">SSS</th>
               <th className="px-3 py-2">PhilHealth</th>
               <th className="px-3 py-2">Pag-IBIG</th>
+              <th className="px-3 py-2">Loans / Other</th>
               <th className="px-3 py-2">Total Deductions</th>
               <th className="px-3 py-2">Net Pay</th>
               <th className="px-3 py-2 text-right">Payslip</th>
@@ -145,13 +157,13 @@ export default function PayrollGeneration() {
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-3 py-4 text-center text-slate-400">
+                <td colSpan={9} className="px-3 py-4 text-center text-slate-400">
                   Loading...
                 </td>
               </tr>
             ) : !selectedRun || selectedRun.payslips.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-3 py-4 text-center text-slate-400">
+                <td colSpan={9} className="px-3 py-4 text-center text-slate-400">
                   No payroll runs yet. Generate one above.
                 </td>
               </tr>
@@ -163,6 +175,7 @@ export default function PayrollGeneration() {
                   <td className="px-3 py-2">{formatPeso(p.sss_deduction)}</td>
                   <td className="px-3 py-2">{formatPeso(p.philhealth_deduction)}</td>
                   <td className="px-3 py-2">{formatPeso(p.pagibig_deduction)}</td>
+                  <td className="px-3 py-2">{formatPeso(p.other_deductions)}</td>
                   <td className="px-3 py-2">{formatPeso(p.total_deductions)}</td>
                   <td className="px-3 py-2 font-semibold text-green-700">{formatPeso(p.net_pay)}</td>
                   <td className="px-3 py-2 text-right">
@@ -184,7 +197,7 @@ export default function PayrollGeneration() {
               <tr>
                 <td className="px-3 py-2">Totals</td>
                 <td className="px-3 py-2">{formatPeso(totals.gross)}</td>
-                <td className="px-3 py-2" colSpan={3}></td>
+                <td className="px-3 py-2" colSpan={4}></td>
                 <td className="px-3 py-2">{formatPeso(totals.deductions)}</td>
                 <td className="px-3 py-2 text-green-700">{formatPeso(totals.net)}</td>
                 <td className="px-3 py-2"></td>

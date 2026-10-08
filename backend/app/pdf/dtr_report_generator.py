@@ -79,7 +79,12 @@ def _build_header_rows() -> tuple[list, list, list]:
     return group_row, sub_row, spans
 
 
-def generate_dtr_summary_pdf(date_from, date_to, rows_by_department: dict[str, list[dict]]) -> io.BytesIO:
+def generate_dtr_summary_pdf(
+    date_from,
+    date_to,
+    rows_by_department: dict[str, list[dict]],
+    status_label: str | None = None,
+) -> io.BytesIO:
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -101,7 +106,10 @@ def generate_dtr_summary_pdf(date_from, date_to, rows_by_department: dict[str, l
         logo_width = 2.5 * inch
         elements.append(Image(LOGO_PATH, width=logo_width, height=logo_width / LOGO_ASPECT_RATIO))
         elements.append(Spacer(1, 0.05 * inch))
-    elements.append(Paragraph("Employees DTR Summary Report", title_style))
+    title = "Employees DTR Summary Report"
+    if status_label:
+        title += f" &mdash; {status_label}"
+    elements.append(Paragraph(title, title_style))
     elements.append(Paragraph(f"For the period of {date_from} to {date_to}", subtitle_style))
     elements.append(Spacer(1, 0.15 * inch))
 

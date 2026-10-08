@@ -13,6 +13,13 @@ COMPANY_NAME = "Bio Green Processing and Manufacturing Inc."
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
 LOGO_ASPECT_RATIO = 961 / 258  # width / height of logo.png (pre-cropped to content)
 
+# Human-readable employment status names for report titles and CSV cells.
+STATUS_LABELS = {
+    "REGULAR": "Regular",
+    "PROBATIONARY": "Probationary",
+    "ON_CALL": "On-call",
+}
+
 
 def php(amount) -> str:
     value = amount if isinstance(amount, Decimal) else Decimal(str(amount))
