@@ -3,20 +3,26 @@ import { useEffect, useState } from "react";
 import { approveOvertime, createAttendance, listAttendance } from "../api/attendance";
 import { listEmployees } from "../api/employees";
 import { listHolidays } from "../api/holidays";
-import type { Attendance, Employee, Holiday } from "../api/types";
+import { listShifts } from "../api/shifts";
+import type { Attendance, Employee, Holiday, Shift } from "../api/types";
 import { addDays, todayIso } from "../lib/dates";
 
 
 export default function AttendanceEntry() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [records, setRecords] = useState<Attendance[]>([]);
+  const [filterEmployeeId, setFilterEmployeeId] = useState<number | "">("");
   const [loading, setLoading] = useState(true);
 
   const [employeeId, setEmployeeId] = useState<number | "">("");
   const [date, setDate] = useState(todayIso());
   const [timeIn, setTimeIn] = useState("22:00");
   const [timeOut, setTimeOut] = useState("06:00");
+  const [shiftId, setShiftId] = useState<number | "">("");
+  const [breakOut, setBreakOut] = useState("");
+  const [breakIn, setBreakIn] = useState("");
   const [nextDayOut, setNextDayOut] = useState(true);
   const [isRestDayWorked, setIsRestDayWorked] = useState(false);
   const [holidayId, setHolidayId] = useState<number | "">("");
@@ -24,8 +30,14 @@ export default function AttendanceEntry() {
 
   const refresh = async () => {
     setLoading(true);
-    const [emps, hols, atts] = await Promise.all([listEmployees(), listHolidays(), listAttendance()]);
+    const [emps, hols, atts, shiftRows] = await Promise.all([
+      listEmployees(),
+      listHolidays(),
+      listAttendance(),
+      listShifts(),
+    ]);
     setEmployees(emps);
+    setShifts(shiftRows);
     setHolidays(hols);
     setRecords(atts);
     setLoading(false);
@@ -40,6 +52,28 @@ export default function AttendanceEntry() {
     return e ? `${e.first_name} ${e.last_name}` : `#${id}`;
   };
 
+  const shiftName = (id: number | null) => {
+    if (id === null) return "—";
+    const sh = shifts.find((x) => x.id === id);
+    return sh ? sh.name : `#${id}`;
+  };
+
+  const handleEmployeeChange = (id: number | "") => {
+    setEmployeeId(id);
+    const emp = employees.find((x) => x.id === id);
+    setShiftId(emp?.default_shift_id ?? "");
+  };
+
+  // A break earlier on the clock than the log-in belongs to the next calendar day (night shifts).
+  const breakDateTime = (clock: string) => {
+    if (!clock) return null;
+    const day = clock < timeIn ? addDays(date, 1) : date;
+    return `${day}T${clock}:00`;
+  };
+
+  const visibleRecords =
+    filterEmployeeId === "" ? records : records.filter((r) => r.employee_id === filterEmployeeId);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!employeeId) return;
@@ -49,13 +83,18 @@ export default function AttendanceEntry() {
       await createAttendance({
         employee_id: employeeId,
         date,
+        shift_id: shiftId === "" ? null : shiftId,
         time_in: `${date}T${timeIn}:00`,
+        break_out: breakDateTime(breakOut),
+        break_in: breakDateTime(breakIn),
         time_out: `${outDate}T${timeOut}:00`,
         is_rest_day_worked: isRestDayWorked,
         holiday_id: holidayId === "" ? null : holidayId,
       });
       setIsRestDayWorked(false);
       setHolidayId("");
+      setBreakOut("");
+      setBreakIn("");
       await refresh();
     } catch (err: unknown) {
       const message =
@@ -93,7 +132,7 @@ export default function AttendanceEntry() {
         <h1 className="text-xl font-semibold text-slate-900">Attendance</h1>
         <p className="text-sm text-slate-500">
           Log daily punches. Lateness, undertime, and NSD minutes are computed automatically from the
-          employee's assigned shift.
+          shift worked that day.
         </p>
       </div>
 
@@ -104,7 +143,7 @@ export default function AttendanceEntry() {
             <select
               required
               value={employeeId}
-              onChange={(e) => setEmployeeId(Number(e.target.value))}
+              onChange={(e) => handleEmployeeChange(e.target.value === "" ? "" : Number(e.target.value))}
               className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             >
               <option value="">Select employee</option>
@@ -142,6 +181,39 @@ export default function AttendanceEntry() {
               required
               value={timeOut}
               onChange={(e) => setTimeOut(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Shift</label>
+            <select
+              value={shiftId}
+              onChange={(e) => setShiftId(e.target.value === "" ? "" : Number(e.target.value))}
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
+            >
+              <option value="">None</option>
+              {shifts.map((sh) => (
+                <option key={sh.id} value={sh.id}>
+                  {sh.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Break Out</label>
+            <input
+              type="time"
+              value={breakOut}
+              onChange={(e) => setBreakOut(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Break In</label>
+            <input
+              type="time"
+              value={breakIn}
+              onChange={(e) => setBreakIn(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
             />
           </div>
@@ -184,14 +256,37 @@ export default function AttendanceEntry() {
         </div>
       </form>
 
+      <div className="mb-2 flex items-center gap-2">
+        <label className="text-xs font-medium text-slate-600" htmlFor="attendance-filter">
+          Employee
+        </label>
+        <select
+          id="attendance-filter"
+          value={filterEmployeeId}
+          onChange={(e) => setFilterEmployeeId(e.target.value === "" ? "" : Number(e.target.value))}
+          className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
+        >
+          <option value="">All employees</option>
+          {employees.map((emp) => (
+            <option key={emp.id} value={emp.id}>
+              {emp.first_name} {emp.last_name}
+            </option>
+          ))}
+        </select>
+        <span className="text-xs text-slate-500">{visibleRecords.length} records</span>
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>
               <th className="px-3 py-2">Employee</th>
               <th className="px-3 py-2">Date</th>
-              <th className="px-3 py-2">Time In</th>
-              <th className="px-3 py-2">Time Out</th>
+              <th className="px-3 py-2">Shift</th>
+              <th className="px-3 py-2">Log-In</th>
+              <th className="px-3 py-2">Break Out</th>
+              <th className="px-3 py-2">Break In</th>
+              <th className="px-3 py-2">Log-Out</th>
               <th className="px-3 py-2">Late</th>
               <th className="px-3 py-2">Undertime</th>
               <th className="px-3 py-2">NSD</th>
@@ -203,22 +298,25 @@ export default function AttendanceEntry() {
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={10} className="px-3 py-4 text-center text-slate-400">
+                <td colSpan={13} className="px-3 py-4 text-center text-slate-400">
                   Loading...
                 </td>
               </tr>
-            ) : records.length === 0 ? (
+            ) : visibleRecords.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-3 py-4 text-center text-slate-400">
+                <td colSpan={13} className="px-3 py-4 text-center text-slate-400">
                   No attendance records yet.
                 </td>
               </tr>
             ) : (
-              records.map((att) => (
+              visibleRecords.map((att) => (
                 <tr key={att.id} className="hover:bg-slate-50">
                   <td className="px-3 py-2 font-medium text-slate-900">{employeeName(att.employee_id)}</td>
                   <td className="px-3 py-2">{att.date}</td>
+                  <td className="px-3 py-2">{shiftName(att.shift_id)}</td>
                   <td className="px-3 py-2">{att.time_in?.slice(11, 16) ?? "—"}</td>
+                  <td className="px-3 py-2">{att.break_out?.slice(11, 16) ?? "—"}</td>
+                  <td className="px-3 py-2">{att.break_in?.slice(11, 16) ?? "—"}</td>
                   <td className="px-3 py-2">{att.time_out?.slice(11, 16) ?? "—"}</td>
                   <td className="px-3 py-2">{att.late_minutes}m</td>
                   <td className="px-3 py-2">{att.undertime_minutes}m</td>

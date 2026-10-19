@@ -42,8 +42,11 @@ export interface Attendance {
   id: number;
   employee_id: number;
   date: string;
+  shift_id: number | null;
   time_in: string | null;
   time_out: string | null;
+  break_out: string | null;
+  break_in: string | null;
   actual_ot_minutes: number;
   approved_ot_minutes: number;
   nsd_minutes: number;
@@ -56,8 +59,11 @@ export interface Attendance {
 export interface AttendanceInput {
   employee_id: number;
   date: string;
+  shift_id: number | null;
   time_in: string | null;
   time_out: string | null;
+  break_out: string | null;
+  break_in: string | null;
   is_rest_day_worked: boolean;
   holiday_id: number | null;
 }

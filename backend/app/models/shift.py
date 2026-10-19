@@ -14,3 +14,4 @@ class Shift(Base):
     grace_period_minutes = Column(Integer, nullable=False, default=0)
 
     employees = relationship("Employee", back_populates="default_shift")
+    attendances = relationship("Attendance", back_populates="shift")

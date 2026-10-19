@@ -15,6 +15,9 @@ Base = declarative_base()
 # added here or every query touching that table fails on the old schema.
 ADDITIVE_COLUMNS = [
     ("employees", "employment_status", "VARCHAR(12) NOT NULL DEFAULT 'REGULAR'"),
+    ("attendances", "shift_id", "INTEGER REFERENCES shifts(id)"),
+    ("attendances", "break_out", "DATETIME"),
+    ("attendances", "break_in", "DATETIME"),
 ]
 
 

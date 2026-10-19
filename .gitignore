@@ -15,3 +15,6 @@ frontend/.vite/
 .DS_Store
 .vscode/
 .idea/
+
+# Timekeeping import backups
+backend/*.bak-*

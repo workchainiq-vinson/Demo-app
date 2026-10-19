@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.attendance import Attendance
 from app.models.shift import Shift
 from app.schemas.shift import ShiftCreate, ShiftRead, ShiftUpdate
 
@@ -39,6 +40,11 @@ def delete_shift(shift_id: int, db: Session = Depends(get_db)):
     shift = db.query(Shift).filter(Shift.id == shift_id).first()
     if not shift:
         raise HTTPException(status_code=404, detail="Shift not found")
+    if db.query(Attendance).filter(Attendance.shift_id == shift_id).first():
+        raise HTTPException(
+            status_code=400,
+            detail="Shift is used by attendance records; deleting it would lose their shift history",
+        )
     db.delete(shift)
     db.commit()
     return None
