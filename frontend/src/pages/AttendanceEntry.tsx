@@ -8,6 +8,28 @@ import type { Attendance, Employee, Holiday, Shift } from "../api/types";
 import { addDays, todayIso } from "../lib/dates";
 
 
+type BreakKey = "breakOut" | "breakIn" | "midOut" | "midIn" | "secondOut" | "secondIn";
+
+const EMPTY_BREAKS: Record<BreakKey, string> = {
+  breakOut: "",
+  breakIn: "",
+  midOut: "",
+  midIn: "",
+  secondOut: "",
+  secondIn: "",
+};
+
+const BREAK_FIELDS: { label: string; out: BreakKey; in: BreakKey }[] = [
+  { label: "First", out: "breakOut", in: "breakIn" },
+  { label: "Mid", out: "midOut", in: "midIn" },
+  { label: "2nd", out: "secondOut", in: "secondIn" },
+];
+
+const clock = (value: string | null) => value?.slice(11, 16) ?? "";
+
+const breakCell = (out: string | null, inn: string | null) =>
+  out || inn ? `${clock(out) || "—"} – ${clock(inn) || "—"}` : "—";
+
 export default function AttendanceEntry() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
@@ -21,8 +43,8 @@ export default function AttendanceEntry() {
   const [timeIn, setTimeIn] = useState("22:00");
   const [timeOut, setTimeOut] = useState("06:00");
   const [shiftId, setShiftId] = useState<number | "">("");
-  const [breakOut, setBreakOut] = useState("");
-  const [breakIn, setBreakIn] = useState("");
+  // Clock times ("HH:MM") for each break, in day order: first, mid, 2nd.
+  const [breaks, setBreaks] = useState<Record<BreakKey, string>>(EMPTY_BREAKS);
   const [nextDayOut, setNextDayOut] = useState(true);
   const [isRestDayWorked, setIsRestDayWorked] = useState(false);
   const [holidayId, setHolidayId] = useState<number | "">("");
@@ -64,11 +86,23 @@ export default function AttendanceEntry() {
     setShiftId(emp?.default_shift_id ?? "");
   };
 
-  // A break earlier on the clock than the log-in belongs to the next calendar day (night shifts).
-  const breakDateTime = (clock: string) => {
-    if (!clock) return null;
-    const day = clock < timeIn ? addDays(date, 1) : date;
-    return `${day}T${clock}:00`;
+  // Places each break clock time after the previous punch, so a break earlier on
+  // the clock than the one before it (night shifts) falls on the next calendar day.
+  const breakDateTimes = (): Record<BreakKey, string | null> => {
+    const result = { ...EMPTY_BREAKS } as Record<BreakKey, string | null>;
+    let day = date;
+    let previous = timeIn;
+    for (const key of ["breakOut", "breakIn", "midOut", "midIn", "secondOut", "secondIn"] as BreakKey[]) {
+      const value = breaks[key];
+      if (!value) {
+        result[key] = null;
+        continue;
+      }
+      if (value < previous) day = addDays(day, 1);
+      result[key] = `${day}T${value}:00`;
+      previous = value;
+    }
+    return result;
   };
 
   const visibleRecords =
@@ -80,21 +114,25 @@ export default function AttendanceEntry() {
     setSaving(true);
     try {
       const outDate = nextDayOut ? addDays(date, 1) : date;
+      const b = breakDateTimes();
       await createAttendance({
         employee_id: employeeId,
         date,
         shift_id: shiftId === "" ? null : shiftId,
         time_in: `${date}T${timeIn}:00`,
-        break_out: breakDateTime(breakOut),
-        break_in: breakDateTime(breakIn),
+        break_out: b.breakOut,
+        break_in: b.breakIn,
+        mid_break_out: b.midOut,
+        mid_break_in: b.midIn,
+        second_break_out: b.secondOut,
+        second_break_in: b.secondIn,
         time_out: `${outDate}T${timeOut}:00`,
         is_rest_day_worked: isRestDayWorked,
         holiday_id: holidayId === "" ? null : holidayId,
       });
       setIsRestDayWorked(false);
       setHolidayId("");
-      setBreakOut("");
-      setBreakIn("");
+      setBreaks(EMPTY_BREAKS);
       await refresh();
     } catch (err: unknown) {
       const message =
@@ -200,24 +238,6 @@ export default function AttendanceEntry() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Break Out</label>
-            <input
-              type="time"
-              value={breakOut}
-              onChange={(e) => setBreakOut(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Break In</label>
-            <input
-              type="time"
-              value={breakIn}
-              onChange={(e) => setBreakIn(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
-            />
-          </div>
-          <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">Holiday</label>
             <select
               value={holidayId}
@@ -232,6 +252,22 @@ export default function AttendanceEntry() {
               ))}
             </select>
           </div>
+        </div>
+        <div className="mt-2 grid grid-cols-3 gap-2 md:grid-cols-6">
+          {BREAK_FIELDS.flatMap((f) => [
+            { key: f.out, label: `${f.label} Break Out` },
+            { key: f.in, label: `${f.label} Break In` },
+          ]).map(({ key, label }) => (
+            <div key={key}>
+              <label className="mb-1 block text-xs font-medium text-slate-600">{label}</label>
+              <input
+                type="time"
+                value={breaks[key]}
+                onChange={(e) => setBreaks((prev) => ({ ...prev, [key]: e.target.value }))}
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"
+              />
+            </div>
+          ))}
         </div>
         <div className="mt-2 flex items-center gap-4">
           <label className="flex items-center gap-2 text-sm text-slate-700">
@@ -284,8 +320,9 @@ export default function AttendanceEntry() {
               <th className="px-3 py-2">Date</th>
               <th className="px-3 py-2">Shift</th>
               <th className="px-3 py-2">Log-In</th>
-              <th className="px-3 py-2">Break Out</th>
-              <th className="px-3 py-2">Break In</th>
+              <th className="px-3 py-2">First Break</th>
+              <th className="px-3 py-2">Mid Break</th>
+              <th className="px-3 py-2">2nd Break</th>
               <th className="px-3 py-2">Log-Out</th>
               <th className="px-3 py-2">Late</th>
               <th className="px-3 py-2">Undertime</th>
@@ -298,13 +335,13 @@ export default function AttendanceEntry() {
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={13} className="px-3 py-4 text-center text-slate-400">
+                <td colSpan={14} className="px-3 py-4 text-center text-slate-400">
                   Loading...
                 </td>
               </tr>
             ) : visibleRecords.length === 0 ? (
               <tr>
-                <td colSpan={13} className="px-3 py-4 text-center text-slate-400">
+                <td colSpan={14} className="px-3 py-4 text-center text-slate-400">
                   No attendance records yet.
                 </td>
               </tr>
@@ -315,8 +352,9 @@ export default function AttendanceEntry() {
                   <td className="px-3 py-2">{att.date}</td>
                   <td className="px-3 py-2">{shiftName(att.shift_id)}</td>
                   <td className="px-3 py-2">{att.time_in?.slice(11, 16) ?? "—"}</td>
-                  <td className="px-3 py-2">{att.break_out?.slice(11, 16) ?? "—"}</td>
-                  <td className="px-3 py-2">{att.break_in?.slice(11, 16) ?? "—"}</td>
+                  <td className="px-3 py-2">{breakCell(att.break_out, att.break_in)}</td>
+                  <td className="px-3 py-2">{breakCell(att.mid_break_out, att.mid_break_in)}</td>
+                  <td className="px-3 py-2">{breakCell(att.second_break_out, att.second_break_in)}</td>
                   <td className="px-3 py-2">{att.time_out?.slice(11, 16) ?? "—"}</td>
                   <td className="px-3 py-2">{att.late_minutes}m</td>
                   <td className="px-3 py-2">{att.undertime_minutes}m</td>

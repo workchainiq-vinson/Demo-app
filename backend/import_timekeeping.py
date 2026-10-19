@@ -36,7 +36,13 @@ START_ONLY_HOURS = 8
 GRACE_MINUTES = 0
 
 # Column positions in the report's day rows.
-COL_NAME, COL_DATE, COL_SHIFT, COL_IN, COL_BREAK_OUT, COL_BREAK_IN, COL_OUT = 0, 1, 3, 6, 8, 10, 22
+COL_NAME, COL_DATE, COL_SHIFT, COL_IN, COL_OUT = 0, 1, 3, 6, 22
+# (label, out column, in column, Attendance out field, Attendance in field), in day order.
+BREAKS = [
+    ("first", 8, 10, "break_out", "break_in"),
+    ("mid", 12, 15, "mid_break_out", "mid_break_in"),
+    ("2nd", 17, 20, "second_break_out", "second_break_in"),
+]
 
 HEADER_RE = re.compile(r"^(.+?) - (\d+)$")
 RANGE_RE = re.compile(r"(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})")
@@ -98,8 +104,7 @@ def parse_report(path: str):
             "shift": str(cell(r, COL_SHIFT)).strip(),
             "in": cell(r, COL_IN),
             "out": cell(r, COL_OUT),
-            "break_out": str(cell(r, COL_BREAK_OUT)).strip(),
-            "break_in": str(cell(r, COL_BREAK_IN)).strip(),
+            "breaks": [(str(cell(r, co)).strip(), str(cell(r, ci)).strip()) for _, co, ci, _, _ in BREAKS],
         }
     return people, problems
 
@@ -123,19 +128,29 @@ def build_plan(people):
                 anomalies.append(f"{who} {log_date}: missing {'log-in' if time_in is None else 'log-out'}")
             if time_in and not (log_date <= time_in.date() <= log_date + timedelta(days=1)):
                 anomalies.append(f"{who} {log_date}: log-in {time_in:%Y-%m-%d %H:%M} is outside the log date")
-            break_out = break_in = None
-            if time_in and day["break_out"]:
-                break_out = anchor_clock(day["break_out"], time_in)
-                if break_out is None:
-                    anomalies.append(f"{who} {log_date}: unreadable break-out {day['break_out']!r}")
-            if break_out and day["break_in"]:
-                break_in = anchor_clock(day["break_in"], break_out)
-                if break_in is None:
-                    anomalies.append(f"{who} {log_date}: unreadable break-in {day['break_in']!r}")
-            if day["break_out"] and not day["break_in"]:
-                anomalies.append(f"{who} {log_date}: break-out {day['break_out']} has no break-in")
-            if break_in and time_out and break_in > time_out:
-                anomalies.append(f"{who} {log_date}: break-in {break_in:%H:%M} is after log-out {time_out:%m-%d %H:%M}")
+            # Each break is anchored after the previous punch so a break past
+            # midnight lands on the next calendar day.
+            punches: dict[str, datetime | None] = {}
+            reference = time_in
+            last_punch = time_in
+            for (label, _, _, out_field, in_field), (out_text, in_text) in zip(BREAKS, day["breaks"]):
+                b_out = b_in = None
+                if out_text and reference:
+                    b_out = anchor_clock(out_text, reference)
+                    if b_out is None:
+                        anomalies.append(f"{who} {log_date}: unreadable {label} break-out {out_text!r}")
+                if in_text and (b_out or reference):
+                    b_in = anchor_clock(in_text, b_out or reference)
+                    if b_in is None:
+                        anomalies.append(f"{who} {log_date}: unreadable {label} break-in {in_text!r}")
+                if out_text and not in_text:
+                    anomalies.append(f"{who} {log_date}: {label} break-out {out_text} has no break-in")
+                if in_text and not out_text:
+                    anomalies.append(f"{who} {log_date}: {label} break-in {in_text} has no break-out")
+                if b_in and time_out and b_in > time_out:
+                    anomalies.append(f"{who} {log_date}: {label} break-in {b_in:%H:%M} is after log-out {time_out:%m-%d %H:%M}")
+                punches[out_field], punches[in_field] = b_out, b_in
+                reference = b_in or b_out or reference
             if time_in and time_out:
                 span = (time_out - time_in).total_seconds() / 3600
                 if span > 14:
@@ -150,7 +165,7 @@ def build_plan(people):
                     if abs((time_in - start).total_seconds()) / 3600 > 4:
                         anomalies.append(f"{who} {log_date}: log-in {abs((time_in - start).total_seconds()) / 3600:.1f}h from shift start")
             rows.append(
-                {"code": code, "date": log_date, "shift": rng, "in": time_in, "out": time_out, "bo": break_out, "bi": break_in}
+                {"code": code, "date": log_date, "shift": rng, "in": time_in, "out": time_out, "punches": punches}
             )
     return shifts_needed, rows, anomalies
 
@@ -247,8 +262,7 @@ def main() -> int:
                 shift=shift_by_range.get(row["shift"]) if row["shift"] else None,
                 time_in=row["in"],
                 time_out=row["out"],
-                break_out=row["bo"],
-                break_in=row["bi"],
+                **row["punches"],
             )
             attendance_service.recompute_derived_fields(a, emp)
             session.add(a)

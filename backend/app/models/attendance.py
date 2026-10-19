@@ -15,8 +15,12 @@ class Attendance(Base):
     shift_id = Column(Integer, ForeignKey("shifts.id"), nullable=True, index=True)
     time_in = Column(DateTime, nullable=True)
     time_out = Column(DateTime, nullable=True)
-    break_out = Column(DateTime, nullable=True)
-    break_in = Column(DateTime, nullable=True)
+    break_out = Column(DateTime, nullable=True)  # first break out
+    break_in = Column(DateTime, nullable=True)  # first break in
+    mid_break_out = Column(DateTime, nullable=True)
+    mid_break_in = Column(DateTime, nullable=True)
+    second_break_out = Column(DateTime, nullable=True)
+    second_break_in = Column(DateTime, nullable=True)
 
     actual_ot_minutes = Column(Integer, nullable=False, default=0)
     approved_ot_minutes = Column(Integer, nullable=False, default=0)

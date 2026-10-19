@@ -18,6 +18,10 @@ ADDITIVE_COLUMNS = [
     ("attendances", "shift_id", "INTEGER REFERENCES shifts(id)"),
     ("attendances", "break_out", "DATETIME"),
     ("attendances", "break_in", "DATETIME"),
+    ("attendances", "mid_break_out", "DATETIME"),
+    ("attendances", "mid_break_in", "DATETIME"),
+    ("attendances", "second_break_out", "DATETIME"),
+    ("attendances", "second_break_in", "DATETIME"),
 ]
 
 
