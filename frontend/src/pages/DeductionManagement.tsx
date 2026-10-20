@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { createDeduction, deleteDeduction, listDeductions, updateDeduction } from "../api/deductions";
 import { listEmployees } from "../api/employees";
 import type { DeductionType, Employee, EmployeeDeduction } from "../api/types";
-import { DEDUCTION_LABELS, DEDUCTION_TYPES, formatPeso } from "../lib/format";
+import { DEDUCTION_LABELS, DEDUCTION_TYPES, OPEN_ENDED_DEDUCTIONS, formatPeso } from "../lib/format";
 import { todayIso } from "../lib/dates";
 
 
@@ -88,7 +88,7 @@ export default function DeductionManagement() {
     setShowForm(true);
   };
 
-  const isMp2 = form.deduction_type === "MP2";
+  const isOpenEnded = OPEN_ENDED_DEDUCTIONS.includes(form.deduction_type);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,13 +100,13 @@ export default function DeductionManagement() {
           amount_per_cutoff: form.amount_per_cutoff,
           start_date: form.start_date,
           is_active: form.is_active,
-          ...(isMp2 ? {} : { remaining_balance: form.remaining_balance }),
+          ...(isOpenEnded ? {} : { remaining_balance: form.remaining_balance }),
         });
       } else {
         await createDeduction({
           employee_id: form.employee_id,
           deduction_type: form.deduction_type,
-          total_amount: isMp2 ? null : form.total_amount,
+          total_amount: isOpenEnded ? null : form.total_amount,
           amount_per_cutoff: form.amount_per_cutoff,
           start_date: form.start_date,
           is_active: true,
@@ -152,7 +152,7 @@ export default function DeductionManagement() {
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Loans &amp; Deductions</h1>
           <p className="text-sm text-slate-500">
-            SSS, Pag-IBIG and calamity loans, MP2 savings, and petty cash advances. Each payroll run deducts the
+            SSS, Pag-IBIG and calamity loans, petty cash and canteen balances, and ongoing MP2, Coop and Insurance contributions. Each payroll run deducts the
             per-cutoff amount and reduces the balance until it is paid off.
           </p>
         </div>
@@ -301,10 +301,10 @@ export default function DeductionManagement() {
                 </div>
               </div>
 
-              {isMp2 ? (
+              {isOpenEnded ? (
                 <p className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs text-slate-500">
-                  MP2 is a voluntary savings contribution: it has no total or balance and is deducted every cutoff
-                  until you pause it.
+                  {DEDUCTION_LABELS[form.deduction_type]} is an ongoing contribution: it has no total or balance and
+                  is deducted every cutoff until you pause it.
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-2">

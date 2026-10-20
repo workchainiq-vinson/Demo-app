@@ -1,6 +1,14 @@
 export type EmploymentType = "REGULAR" | "PAKYAW" | "MIXED";
 export type EmploymentStatus = "REGULAR" | "PROBATIONARY" | "ON_CALL";
-export type DeductionType = "SSS_LOAN" | "PAGIBIG_LOAN" | "MP2" | "CALAMITY_LOAN" | "PETTY_CASH";
+export type DeductionType =
+  | "SSS_LOAN"
+  | "PAGIBIG_LOAN"
+  | "MP2"
+  | "CALAMITY_LOAN"
+  | "PETTY_CASH"
+  | "CANTEEN"
+  | "COOP"
+  | "INSURANCE";
 export type HolidayType = "REGULAR" | "SPECIAL_NON_WORKING";
 
 export interface Shift {

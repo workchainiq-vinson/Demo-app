@@ -22,6 +22,12 @@ export const DEDUCTION_LABELS: Record<DeductionType, string> = {
   MP2: "MP2",
   CALAMITY_LOAN: "Calamity Loan",
   PETTY_CASH: "Petty Cash",
+  CANTEEN: "Canteen",
+  COOP: "Coop",
+  INSURANCE: "Insurance",
 };
+
+// Contributions/premiums that run every cutoff until paused: no total or balance.
+export const OPEN_ENDED_DEDUCTIONS: DeductionType[] = ["MP2", "COOP", "INSURANCE"];
 
 export const DEDUCTION_TYPES = Object.keys(DEDUCTION_LABELS) as DeductionType[];

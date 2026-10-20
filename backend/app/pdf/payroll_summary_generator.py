@@ -1,7 +1,7 @@
 """
 Generates a payroll summary PDF listing every employee's gross/deductions/net
 for that cutoff, with a totals row. Loans, MP2 and petty cash are broken out
-as one column per type. Landscape, since that is 12 columns. See
+as one column per type. Landscape, since that is 15 columns. See
 app/pdf/common.py for the peso-formatting / Unicode-safety notes shared
 across PDF generators.
 """
@@ -11,6 +11,7 @@ from decimal import Decimal
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, letter
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
@@ -124,6 +125,14 @@ def generate_payroll_summary_pdf(
     numeric_width = (usable_width - name_width) / (len(header) - 1)
     col_widths = [name_width] + [numeric_width] * (len(header) - 1)
 
+    # Shrink the font until the widest number (bold, as in the totals row) fits
+    # its column, so a 5-digit amount never spills into its neighbour.
+    padding = 3
+    font_size = 7.0
+    widest = max(stringWidth(cell, "Helvetica-Bold", 1) for row in rows[1:] for cell in row[1:])
+    while font_size > 5 and widest * font_size + 2 * padding > numeric_width:
+        font_size -= 0.25
+
     table = Table(rows, colWidths=col_widths, repeatRows=1)
     table.setStyle(
         TableStyle(
@@ -136,9 +145,9 @@ def generate_payroll_summary_pdf(
                 ("LINEABOVE", (0, -1), (-1, -1), 1, colors.black),
                 ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("FONTSIZE", (0, 0), (-1, -1), 7),
-                ("LEFTPADDING", (0, 0), (-1, -1), 3),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+                ("FONTSIZE", (0, 0), (-1, -1), font_size),
+                ("LEFTPADDING", (0, 0), (-1, -1), padding),
+                ("RIGHTPADDING", (0, 0), (-1, -1), padding),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),

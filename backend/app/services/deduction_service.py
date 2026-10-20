@@ -1,5 +1,5 @@
 """
-Recurring per-cutoff deductions (loans, MP2 savings, petty cash advances).
+Recurring per-cutoff deductions (loans, MP2/Coop/Insurance contributions, petty cash and canteen balances).
 
 compute_applicable_deductions is pure: it only reads. The payroll router is
 responsible for persisting PayslipDeduction rows and decrementing balances in
@@ -20,6 +20,9 @@ DEDUCTION_LABELS = {
     DeductionType.MP2: "MP2",
     DeductionType.CALAMITY_LOAN: "Calamity Loan",
     DeductionType.PETTY_CASH: "Petty Cash",
+    DeductionType.CANTEEN: "Canteen",
+    DeductionType.COOP: "Coop",
+    DeductionType.INSURANCE: "Insurance",
 }
 
 # Fixed column order used by every report that breaks deductions out by type.
@@ -29,6 +32,9 @@ DEDUCTION_ORDER = [
     DeductionType.MP2,
     DeductionType.CALAMITY_LOAN,
     DeductionType.PETTY_CASH,
+    DeductionType.CANTEEN,
+    DeductionType.COOP,
+    DeductionType.INSURANCE,
 ]
 
 
@@ -47,7 +53,7 @@ def compute_applicable_deductions(db: Session, employee_id: int, cutoff_end: dat
     applicable = []
     for deduction in rows:
         per_cutoff = Decimal(deduction.amount_per_cutoff)
-        # MP2 has no balance and runs until paused; loans never overshoot what's left.
+        # Open-ended types have no balance and run until paused; loans never overshoot what's left.
         if deduction.remaining_balance is None:
             amount = per_cutoff
         else:
