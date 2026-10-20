@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.deduction import DeductionType, EmployeeDeduction, PayslipDeduction
+from app.models.deduction import OPEN_ENDED_TYPES, EmployeeDeduction, PayslipDeduction
 from app.models.employee import Employee
 from app.schemas.deduction import DeductionCreate, DeductionRead, DeductionUpdate
+from app.services.deduction_service import DEDUCTION_LABELS
 
 router = APIRouter(prefix="/deductions", tags=["deductions"])
 
@@ -36,8 +37,8 @@ def create_deduction(payload: DeductionCreate, db: Session = Depends(get_db)):
     if payload.amount_per_cutoff <= ZERO:
         raise HTTPException(status_code=400, detail="Amount per cutoff must be greater than zero")
 
-    if payload.deduction_type == DeductionType.MP2:
-        # MP2 is an open-ended savings contribution: no total, no balance, no payoff.
+    if payload.deduction_type in OPEN_ENDED_TYPES:
+        # Open-ended contribution (MP2, Coop, Insurance): no total, no balance, no payoff.
         total_amount = None
         remaining_balance = None
     else:
@@ -66,10 +67,10 @@ def update_deduction(deduction_id: int, payload: DeductionUpdate, db: Session = 
     deduction = _get_or_404(db, deduction_id)
     changes = payload.model_dump(exclude_unset=True)
 
-    if deduction.deduction_type == DeductionType.MP2 and (
+    if deduction.deduction_type in OPEN_ENDED_TYPES and (
         changes.get("total_amount") is not None or changes.get("remaining_balance") is not None
     ):
-        raise HTTPException(status_code=400, detail="MP2 has no total or balance")
+        raise HTTPException(status_code=400, detail=f"{DEDUCTION_LABELS[deduction.deduction_type]} has no total or balance")
     if "amount_per_cutoff" in changes and changes["amount_per_cutoff"] <= ZERO:
         raise HTTPException(status_code=400, detail="Amount per cutoff must be greater than zero")
     if changes.get("remaining_balance") is not None and changes["remaining_balance"] < ZERO:

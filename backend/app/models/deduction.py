@@ -12,13 +12,20 @@ class DeductionType(str, enum.Enum):
     MP2 = "MP2"
     CALAMITY_LOAN = "CALAMITY_LOAN"
     PETTY_CASH = "PETTY_CASH"
+    CANTEEN = "CANTEEN"
+    COOP = "COOP"
+    INSURANCE = "INSURANCE"
+
+
+# Contributions/premiums that run every cutoff until paused: no total, no balance.
+OPEN_ENDED_TYPES = {DeductionType.MP2, DeductionType.COOP, DeductionType.INSURANCE}
 
 
 class EmployeeDeduction(Base):
     """A recurring per-cutoff payroll deduction for one employee.
 
-    total_amount / remaining_balance are NULL for MP2, which is an open-ended
-    voluntary savings contribution with no payoff.
+    total_amount / remaining_balance are NULL for the open-ended types (MP2,
+    Coop, Insurance), which have no payoff.
     """
 
     __tablename__ = "employee_deductions"
